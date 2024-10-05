@@ -3,13 +3,46 @@ import java.util.HashMap;
 
 public class Agent extends Creature{
     private Genotype genotype;
-    private int food_detection_range;
-    private int agent_detection_range;
+    private double food_detection_range;
+    private double agent_detection_range;
+    private double time_between_change_of_direction_random_walk = 100;
+    private double last_direction_change_time;
     
-    public Agent(int x, int y, int energy_level, int[] allele1, int[] allele2, String class_type, double moving_speed, int food_detection_range, int agent_detection_range) {
-        super(x, y, energy_level, class_type, moving_speed);
+    public Agent(double x, double y, double energy_level, int[] allele1, int[] allele2, String class_type, double speed, double food_detection_range, double agent_detection_range) {
+        super(x, y, energy_level, class_type, speed);
         this.genotype = new Genotype(allele1, allele2);
         this.food_detection_range = food_detection_range;
+        this.agent_detection_range = agent_detection_range;
+        this.last_direction_change_time = 0;
+    }
+    
+    public void updateDirectionAndEat(ArrayList<Agent> agents, ArrayList<Food> food_sources, ArrayList<Pheromone> pheromones, double simulation_time, double height, double width) {
+        Food nearest_food = findNearestFoodSource(food_sources);
+        if (nearest_food == null) {
+            Pheromone nearest_pheromone = findNearestPheromone(pheromones);
+            if (nearest_pheromone == null) {
+                // No food, no pheromone, random walk
+                if ((simulation_time - this.last_direction_change_time) >= this.time_between_change_of_direction_random_walk) {
+                    this.direction = this.getRandomDirection(height, width);
+                    this.last_direction_change_time = simulation_time;
+                }
+            } else {
+                // There is a pheromone nearby
+                this.direction = this.getDirectionNormedToward(nearest_pheromone);
+                this.last_direction_change_time = simulation_time;
+            }
+        } else {
+            // There is food nearby
+            if (this.distanceToElement(nearest_food) < 5) {
+                // The agent is on the food
+                this.eatFood(nearest_food, simulation_time);
+                this.direction = new double[]{0, 0};
+                this.last_direction_change_time = simulation_time;
+            } else {
+                this.direction = this.getDirectionNormedToward(nearest_food);this.direction = this.getDirectionNormedToward(nearest_food);
+                this.last_direction_change_time = simulation_time;
+            }
+        }
     }
 
     public HashMap<Agent, Double> getNearbyAgents(ArrayList<Agent> agents) {
@@ -28,9 +61,10 @@ public class Agent extends Creature{
     public HashMap<Food, Double> getNearbyFoods(ArrayList<Food> food_sources) {
         HashMap<Food, Double> foodHashMap = new HashMap<>();
         for (int i = 0; i < food_sources.size(); i++) {
-            double distance = this.distanceToElement(food_sources.get(i));
-            if (distance < this.food_detection_range) {
-                foodHashMap.put(food_sources.get(i), distance);
+            Food food = food_sources.get(i);
+            double distance = this.distanceToElement(food);
+            if ((distance < this.food_detection_range) && !food.isEmpty()) {
+                foodHashMap.put(food, distance);
             }
         }
         return foodHashMap;
@@ -55,6 +89,7 @@ public class Agent extends Creature{
         for (Agent agent : agentHashMap.keySet()) {
             if (agentHashMap.get(agent) < min_distance) {
                 best_agent = agent;
+                min_distance = agentHashMap.get(agent);
             }
         }
         return best_agent;
@@ -67,6 +102,7 @@ public class Agent extends Creature{
         for (Food food : foodHashMap.keySet()) {
             if (foodHashMap.get(food) < min_distance) {
                 best_food_source = food;
+                min_distance = foodHashMap.get(food);
             }
         }
         return best_food_source;
@@ -79,21 +115,26 @@ public class Agent extends Creature{
         for (Pheromone pheromone : pheromoneHashMap.keySet()) {
             if (pheromoneHashMap.get(pheromone) < min_distance) {
                 best_pheronome = pheromone;
+                min_distance = pheromoneHashMap.get(pheromone);
             }
         }
         return best_pheronome;
     }
 
-    public void moveTowardFood(Food food_source) {
-        double[] direction = this.directionNormed(food_source);
-        this.moveTowardDirection(direction, this.moving_speed);
+    public void eatFood(Food food, double current_time) {
+        double nutritive_value = food.isEaten(1, current_time);
+        this.modifyEnergyLevel(nutritive_value);
     }
 
     public Genotype getGenotype() {
         return this.genotype;
     }
 
-    public int getFoodDetectionRange() {
+    public double getFoodDetectionRange() {
         return this.food_detection_range;
+    }
+    
+    public double getAgentDetectionRange() {
+        return this.agent_detection_range;
     }
 }

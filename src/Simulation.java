@@ -14,20 +14,32 @@ public class Simulation {
         this.currentTime = 0;
     }
 
-    public void addAgent(int x, int y, int energy, int[] allele1, int[] allele2, String class_type, double moving_speed, int food_detection_range, int agent_detection_range) {
+    public void addAgent(double x, double y, double energy, int[] allele1, int[] allele2, String class_type, double moving_speed, double food_detection_range, double agent_detection_range) {
         this.aliveAgents.add(new Agent(x, y, energy, allele1, allele2, class_type, moving_speed, food_detection_range, agent_detection_range));
     }
 
-    public void addFood(int x, int y, int nutritive_value, int regeneration_pace, int max_supply) {
+    public void removeAgent(Agent agent) {
+        this.aliveAgents.remove(agent);
+    }
+
+    public void addFood(double x, double y, double nutritive_value, double regeneration_pace, double max_supply) {
         this.foods.add(new Food(x, y, nutritive_value, regeneration_pace, max_supply));
     }
 
-    public List<Agent> getAliveAgents() {
+    public ArrayList<Agent> getAliveAgents() {
         return this.aliveAgents;
     }
 
-    public List<Food> getFoods() {
+    public ArrayList<Food> getFoods() {
         return this.foods;
+    }
+
+    public ArrayList<Pheromone> getPheromones() {
+        return this.pheromones;
+    }
+
+    public int getCurrentTime() {
+        return this.currentTime;
     }
 
     public void incrementTime() {

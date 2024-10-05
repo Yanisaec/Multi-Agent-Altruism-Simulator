@@ -4,13 +4,14 @@
     ],
     "java.project.outputPath": "bin",
     "java.project.referencedLibraries": [
-        "c:\\Users\\boite\\javafx-sdk-23\\lib\\javafx.base.jar",
-        "c:\\Users\\boite\\javafx-sdk-23\\lib\\javafx.controls.jar",
-        "c:\\Users\\boite\\javafx-sdk-23\\lib\\javafx.fxml.jar",
+        "jar\\gson-2.11.0.jar",
         "c:\\Users\\boite\\javafx-sdk-23\\lib\\javafx.graphics.jar",
-        "c:\\Users\\boite\\javafx-sdk-23\\lib\\javafx.media.jar",
         "c:\\Users\\boite\\javafx-sdk-23\\lib\\javafx.swing.jar",
         "c:\\Users\\boite\\javafx-sdk-23\\lib\\javafx.web.jar",
+        "c:\\Users\\boite\\javafx-sdk-23\\lib\\javafx.base.jar",
+        "c:\\Users\\boite\\javafx-sdk-23\\lib\\javafx.controls.jar",
+        "c:\\Users\\boite\\javafx-sdk-23\\lib\\javafx.media.jar",
+        "c:\\Users\\boite\\javafx-sdk-23\\lib\\javafx.fxml.jar",
         "c:\\Users\\boite\\javafx-sdk-23\\lib\\javafx-swt.jar"
     ]
 }

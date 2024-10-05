@@ -1,0 +1,11 @@
+{
+    "number_of_agents": 40,
+    "number_of_food_spots": 100,
+    "agent_base_energy_level": 100,
+    "moving_speed": 0.2,
+    "food_detection_range": 50,
+    "agent_detection_range": 100,
+    "food_nutritive_value": 1.0,
+    "food_max_supply": 50,
+    "time_before_food_respawn": 600
+}
