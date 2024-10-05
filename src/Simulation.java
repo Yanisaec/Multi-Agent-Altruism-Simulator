@@ -8,6 +8,7 @@ public class Simulation {
     
     public Simulation() {
         this.aliveAgents = new ArrayList<>();
+        this.foods = new ArrayList<>();
         this.currentTime = 0;
     }
 
@@ -17,5 +18,17 @@ public class Simulation {
 
     public void addFood(int x, int y, int nutritive_value, int regeneration_pace, int max_supply) {
         this.foods.add(new Food(x, y, nutritive_value, regeneration_pace, max_supply));
+    }
+
+    public List<Agent> getAliveAgents() {
+        return this.aliveAgents;
+    }
+
+    public List<Food> getFoods() {
+        return this.foods;
+    }
+
+    public void incrementTime() {
+        this.currentTime++;
     }
 }
