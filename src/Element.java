@@ -43,12 +43,17 @@ public class Element {
         return direction;
     }
 
-    public double[] getRandomDirection(double height, double width) {
+    public double[] getRandomDirectionCanva(double height, double width) {
         double random_x = Math.random()*width;
         double random_y = Math.random()*height;
         Element point = new Element(random_x, random_y);
         double[] random_direction = this.getDirectionNormedToward(point);
         // double[] random_direction = new double[]{Math.random()*2 - 1.0, Math.random()*2 - 1.0};
+        return random_direction;
+    }
+
+    public double[] getRandomDirection() {
+        double[] random_direction = new double[]{Math.random()*2 - 1.0, Math.random()*2 - 1.0};
         return random_direction;
     }
 }

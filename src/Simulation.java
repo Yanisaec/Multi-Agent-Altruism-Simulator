@@ -1,11 +1,13 @@
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Random;
 
 public class Simulation {
     private ArrayList<Agent> aliveAgents;
     private ArrayList<Food> foods;
     private ArrayList<Pheromone> pheromones;
     private int currentTime;
+    private Random random = new Random();
     
     public Simulation() {
         this.aliveAgents = new ArrayList<>();
@@ -14,8 +16,72 @@ public class Simulation {
         this.currentTime = 0;
     }
 
+    public void updateSimulation(Config config, double height, double width) {
+        List<Agent> agentsToAdd = new ArrayList<>();
+        List<Agent> agentsToRemove = new ArrayList<>();
+        List<Pheromone> pheromonesToAdd = new ArrayList<>();
+        List<Pheromone> pheromonesToRemove = new ArrayList<>();
+
+        for (Agent agent : aliveAgents) {
+            agent.updateDirectionAndEat(aliveAgents, foods, pheromones, currentTime, height, width);
+            agent.moveTowardDirection(agent.getDirection(), agent.getSpeed());
+            boolean isDead = agent.getOlder();
+            if (isDead) {
+                agentsToRemove.add(agent);
+            }
+            Agent potential_child = agent.reproduce(config.getEnergyLevelToReproduce(), config.getReproductionCost(), config.getMutationProbability());
+            if (!(potential_child == null)) {
+                agentsToAdd.add(potential_child);
+            }
+            if (agent.isEating()) {
+                if (agent.spreadPheromone(currentTime)) {
+                    Pheromone new_pheromone = new Pheromone(agent.getX(), agent.getY(), config.getPheromoneLifeSpan(), config.getPheromoneRadius());
+                    pheromonesToAdd.add(new_pheromone);
+                    agent.modifyEnergyLevel(-config.getPheromoneEnergyCost());
+                }
+            }
+        }
+
+        for (Pheromone pheromone : pheromones) {
+            boolean is_done = pheromone.update();
+            if (is_done) {
+                pheromonesToRemove.add(pheromone);
+            }
+        }
+
+        // Remove dead agents after the iteration
+        for (Agent deadAgent : agentsToRemove) {
+            removeAgent(deadAgent);
+        }
+
+        for (Agent newAgent : agentsToAdd) {
+            addAgentAgent(newAgent);
+        }
+        
+        for (Pheromone new_pheromone : pheromonesToAdd) {
+            addPheromonePheromone(new_pheromone);
+        }
+
+        for (Pheromone donePheromone : pheromonesToRemove) {
+            removePheromone(donePheromone);
+        }
+        
+        for (Food food : foods) {
+            if (food.isEmpty() && ((currentTime - food.getWhenEmpty()) > config.getTimeBeforeFoodRespawn())) {
+                food.flourishes(food.getMaxSupply());
+                food.setEmptiness(false);
+            }
+        }
+
+        incrementTime();
+    }
+
     public void addAgent(double x, double y, double energy, int[] allele1, int[] allele2, String class_type, double moving_speed, double food_detection_range, double agent_detection_range) {
         this.aliveAgents.add(new Agent(x, y, energy, allele1, allele2, class_type, moving_speed, food_detection_range, agent_detection_range));
+    }
+
+    public void addAgentAgent(Agent new_agent) {
+        this.aliveAgents.add(new_agent);
     }
 
     public void removeAgent(Agent agent) {
@@ -24,6 +90,51 @@ public class Simulation {
 
     public void addFood(double x, double y, double nutritive_value, double regeneration_pace, double max_supply) {
         this.foods.add(new Food(x, y, nutritive_value, regeneration_pace, max_supply));
+    }
+
+    public void addPheromonePheromone(Pheromone new_pheromone) {
+        this.pheromones.add(new_pheromone);
+    }
+
+    public void removePheromone(Pheromone pheromone) {
+        this.pheromones.remove(pheromone);
+    }
+
+    public void addRandomAgent(Config config, double height, double width) {
+        int allele_length = config.getAlleleLength();
+        int[] allele1 = new int[allele_length];
+        int[] allele2 = new int[allele_length];
+        for (int i = 0; i < allele_length; i++) {
+            allele1[i] = random.nextInt(2);
+            allele2[i] = random.nextInt(2);
+        }
+        addAgent(Math.random()*width, Math.random()*height, config.getAgentBaseEnergyLevel(), allele1, allele2, "Agent1", config.getMovingSpeed(), config.getFoodDetectionRange(), config.getAgentDetectionRange());
+    }
+    
+    public void addAltruisticAgent(Config config, double height, double width) {
+        int allele_length = config.getAlleleLength();
+        int[] allele1 = new int[allele_length];
+        int[] allele2 = new int[allele_length];
+        for (int i = 0; i < allele_length; i++) {
+            allele1[i] = 1;
+            allele2[i] = 1;
+        }
+        addAgent(Math.random()*width, Math.random()*height, config.getAgentBaseEnergyLevel(), allele1, allele2, "Agent1", config.getMovingSpeed(), config.getFoodDetectionRange(), config.getAgentDetectionRange());
+    }
+    
+    public void addEgoisticAgent(Config config, double height, double width) {
+        int allele_length = config.getAlleleLength();
+        int[] allele1 = new int[allele_length];
+        int[] allele2 = new int[allele_length];
+        for (int i = 0; i < allele_length; i++) {
+            allele1[i] = 0;
+            allele2[i] = 0;
+        }
+        addAgent(Math.random()*width, Math.random()*height, config.getAgentBaseEnergyLevel(), allele1, allele2, "Agent1", config.getMovingSpeed(), config.getFoodDetectionRange(), config.getAgentDetectionRange());
+    }
+
+    public void addRandomFood(Config config, double height, double width) {
+        addFood(Math.random()*width, Math.random()*height, config.getFoodNutritiveValue(), 1, config.getFoodMaxSupply());
     }
 
     public ArrayList<Agent> getAliveAgents() {

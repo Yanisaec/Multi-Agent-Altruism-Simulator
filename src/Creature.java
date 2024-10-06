@@ -1,5 +1,6 @@
 public class Creature extends Element{
     protected double energy_level;
+    protected double base_energy_level;
     protected String class_type;
     protected double speed;
     protected double[] direction;
@@ -7,6 +8,7 @@ public class Creature extends Element{
     public Creature(double x, double y, double energy_level, String class_type, double speed){
         super(x,y);
         this.energy_level = energy_level;
+        this.base_energy_level = energy_level;
         this.class_type = class_type;
         this.speed = speed;
         this.direction = new double[]{0.0, 0.0};

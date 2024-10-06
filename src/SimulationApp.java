@@ -94,7 +94,7 @@ public class SimulationApp extends Application {
     private void drawingStep(GraphicsContext gc, Canvas canvas) {
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
         drawElements(gc);
-        updateSimulation();
+        simulation.updateSimulation(config, simulation_height, simulation_width);
     }
 
     private void initializeSimulation() {
@@ -104,50 +104,15 @@ public class SimulationApp extends Application {
         // simulation.addFood(200, 175, 50, 2, 100);
         // simulation.addFood(200, 245, 50, 2, 100);
 
-        for (int i = 0; i < config.getNumberOfAgents(); i++) {
-            addRandomAgent();
+        for (int i = 0; i < config.getNumberOfAltruisticAgents(); i++) {
+            simulation.addAltruisticAgent(config, simulation_height, simulation_width);
+        }       
+        for (int i = 0; i < config.getNumberOfEgoisticAgents(); i++) {
+            simulation.addEgoisticAgent(config, simulation_height, simulation_width);
         }        
         for (int i = 0; i < config.getNumberOfFoodSpots(); i++) {
-            addRandomFood();
+            simulation.addRandomFood(config, simulation_height, simulation_width);
         }
-    }
-
-    private void addRandomAgent() {
-        int[] allele1 = {1,0,0,1};
-        int[] allele2 = {1,1,1,0};
-        simulation.addAgent(Math.random()*simulation_width, Math.random()*simulation_height, config.getAgentBaseEnergyLevel(), allele1, allele2, "Agent1", config.getMovingSpeed(), config.getFoodDetectionRange(), config.getAgentDetectionRange());
-    }
-
-    private void addRandomFood() {
-        simulation.addFood(Math.random()*simulation_width, Math.random()*simulation_height, config.getFoodNutritiveValue(), 1, config.getFoodMaxSupply());
-    }
-    
-    private void updateSimulation() {
-        List<Agent> agentsToRemove = new ArrayList<>();
-        double currentTime = simulation.getCurrentTime();
-
-        for (Agent agent : simulation.getAliveAgents()) {
-            agent.updateDirectionAndEat(simulation.getAliveAgents(), simulation.getFoods(), simulation.getPheromones(), currentTime, this.simulation_height, this.simulation_width);
-            agent.moveTowardDirection(agent.getDirection(), agent.getSpeed());
-            boolean isDead = agent.modifyEnergyLevel(-0.1);
-            if (isDead) {
-                agentsToRemove.add(agent);
-            }
-        }
-
-        // Remove dead agents after the iteration
-        for (Agent deadAgent : agentsToRemove) {
-            simulation.removeAgent(deadAgent);
-        }
-        
-        for (Food food : simulation.getFoods()) {
-            if (food.isEmpty() && ((currentTime - food.getWhenEmpty()) > config.getTimeBeforeFoodRespawn())) {
-                food.flourishes(food.getMaxSupply());
-                food.setEmptiness(false);
-            }
-        }
-
-        simulation.incrementTime();
     }
 
     private void drawElements(GraphicsContext gc) {
@@ -159,7 +124,6 @@ public class SimulationApp extends Application {
         gc.setStroke(Color.BLACK); // Set stroke for the energy text
         gc.setLineWidth(1);
         
-        // Draw Food (as squares)
         List<Food> foods = simulation.getFoods();
         gc.setFill(Color.GREEN);
         for (Food food : foods) {
@@ -169,22 +133,43 @@ public class SimulationApp extends Application {
             gc.fillRect(foodX, foodY, 5, 5);
             gc.strokeText(String.format("%.0f", food.getCurrentSupply()), foodX - 5, foodY + 15); // Display energy above the agent
         }
+
+        List<Pheromone> pheromones = simulation.getPheromones();
+        gc.setFill(Color.GREEN);
+        for (Pheromone pheromone : pheromones) {
+            double pheromoneX = pheromone.getX();
+            double pheromoneY = pheromone.getY();
+            double size = pheromone.getRadiusEffect()*2;
+            gc.setStroke(Color.PINK); 
+            gc.strokeOval(pheromoneX - (size / 2), pheromoneY - (size / 2), size, size);
+        }
         
-        // Draw Agents (as circles) and display their energy level
         List<Agent> agents = simulation.getAliveAgents();
         double number_of_agents = agents.size();
         String number_agents_string = String.format("%.0f", number_of_agents);
         gc.setFill(Color.BLACK); // Set fill color for text
         gc.fillText("Number of agents: " + number_agents_string, 10, 20);
         
-        double agentSize = 10;
-        gc.setFill(Color.BLUE);
+        double sum_spread_probas = 0;
         for (Agent agent : agents) {
+            sum_spread_probas += agent.getSpreadProba();
+        }
+        double average_spread_proba = sum_spread_probas / number_of_agents;
+        String average_spread_proba_string = String.format("%.2f", average_spread_proba);
+        gc.fillText("Average spread probability: " + average_spread_proba_string, 10, 40);
+        
+        double agentSize = 10;
+        for (Agent agent : agents) {
+            if (agent.getSpreadProba() > 0.5) {
+                gc.setFill(Color.BLUE);
+            } else {
+                gc.setFill(Color.RED);
+            }
             double agentX = agent.getX();
             double agentY = agent.getY();
             double energy = agent.getEnergyLevel();  // Assuming `getEnergy()` returns the agent's energy level
             double food_detection_range = agent.getFoodDetectionRange()*2;
-            double agent_detection_range = agent.getAgentDetectionRange()*2;
+            // double agent_detection_range = agent.getAgentDetectionRange()*2;
             
             // Draw the agent as a circle
             // gc.drawImage(agentSprite, agentX, agentY, 20, 20); // Draw agent sprite at (x, y) with a size of 20x20   

@@ -1,11 +1,13 @@
 public class Pheromone extends Element {
     private double life_span;
     private double radius_effect;
+    private double age;
 
     public Pheromone(double x, double y, double life_span, double radius_effect) {
         super(x, y);
         this.life_span = life_span;
         this.radius_effect = radius_effect;
+        this.age = 0;
     }
 
     public double getLifeSpan() {
@@ -14,5 +16,13 @@ public class Pheromone extends Element {
 
     public double getRadiusEffect() {
         return this.radius_effect;
+    }
+
+    public boolean update() {
+        this.age++;
+        if (this.age > this.life_span) {
+            return true;
+        }
+        return false;
     }
 }
