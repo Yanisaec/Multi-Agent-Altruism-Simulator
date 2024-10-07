@@ -3,8 +3,8 @@ public class Pheromone extends Element {
     private double radius_effect;
     private double age;
 
-    public Pheromone(double x, double y, double life_span, double radius_effect) {
-        super(x, y);
+    public Pheromone(double x, double y, double life_span, double radius_effect, double height, double width) {
+        super(x, y, height, width);
         this.life_span = life_span;
         this.radius_effect = radius_effect;
         this.age = 0;

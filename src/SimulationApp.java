@@ -44,7 +44,7 @@ public class SimulationApp extends Application {
         config = loadConfig();
 
         // Initialize the simulation
-        simulation = new Simulation();
+        simulation = new Simulation(simulation_height, simulation_width);
         initializeSimulation();
         agentSprite = new Image("file:C:/Users/boite/Desktop/altruism_simulation/Multi_Agent_Altruism_Simulation/src/agent.png");
         foodSprite = new Image("file:C:/Users/boite/Desktop/altruism_simulation/Multi_Agent_Altruism_Simulation/src/food.png");
@@ -94,7 +94,7 @@ public class SimulationApp extends Application {
     private void drawingStep(GraphicsContext gc, Canvas canvas) {
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
         drawElements(gc);
-        simulation.updateSimulation(config, simulation_height, simulation_width);
+        simulation.updateSimulation(config);
     }
 
     private void initializeSimulation() {
@@ -105,13 +105,13 @@ public class SimulationApp extends Application {
         // simulation.addFood(200, 245, 50, 2, 100);
 
         for (int i = 0; i < config.getNumberOfAltruisticAgents(); i++) {
-            simulation.addAltruisticAgent(config, simulation_height, simulation_width);
+            simulation.addAltruisticAgent(config);
         }       
         for (int i = 0; i < config.getNumberOfEgoisticAgents(); i++) {
-            simulation.addEgoisticAgent(config, simulation_height, simulation_width);
+            simulation.addEgoisticAgent(config);
         }        
         for (int i = 0; i < config.getNumberOfFoodSpots(); i++) {
-            simulation.addRandomFood(config, simulation_height, simulation_width);
+            simulation.addRandomFood(config);
         }
     }
 

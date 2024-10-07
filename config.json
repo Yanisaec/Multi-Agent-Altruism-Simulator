@@ -1,21 +1,21 @@
 {
-    "number_of_altruistic_agents": 20,
+    "number_of_altruistic_agents": 10,
     "number_of_egoistic_agents": 20,
     "agent_base_energy_level": 100,
-    "moving_speed": 0.2,
-    "food_detection_range": 50,
+    "moving_speed": 0.4,
+    "food_detection_range": 25,
     "agent_detection_range": 100,
-    "energy_level_to_reproduce": 200,
-    "reproduction_cost": 50,
+    "energy_level_to_reproduce": 150,
+    "reproduction_cost": 25,
     "allele_length": 10,
     "mutation_probability": 0.1,
 
-    "number_of_food_spots": 20,
-    "food_nutritive_value": 0.4,
-    "food_max_supply": 1000,
+    "number_of_food_spots": 100,
+    "food_nutritive_value": 1.0,
+    "food_max_supply": 100,
     "time_before_food_respawn": 1000,
 
-    "pheromone_radius": 100,
-    "pheromone_lifespan": 300,
-    "pheromone_energy_cost": 0.1
+    "pheromone_radius": 50,
+    "pheromone_lifespan": 400,
+    "pheromone_energy_cost": 0.0
 }

@@ -6,37 +6,35 @@ public class Agent extends Creature{
     private double food_detection_range;
     private double agent_detection_range;
     private double time_between_change_of_direction_random_walk = 500;
-    private double last_direction_change_time;
     private boolean is_eating = false;
+    private boolean can_move = true;
     private double last_time_spread_pheromone; 
     private int age;
     
-    public Agent(double x, double y, double energy_level, int[] allele1, int[] allele2, String class_type, double speed, double food_detection_range, double agent_detection_range) {
-        super(x, y, energy_level, class_type, speed);
+    public Agent(double x, double y, double energy_level, int[] allele1, int[] allele2, String class_type, double speed, double food_detection_range, double agent_detection_range, double height, double width) {
+        super(x, y, energy_level, class_type, speed, height, width);
+        this.direction = this.getRandomDirection();
+        this.direction[0] = this.direction[0] * this.speed;
+        this.direction[1] = this.direction[1] * this.speed;
         this.genotype = new Genotype(allele1, allele2);
         this.food_detection_range = food_detection_range;
         this.agent_detection_range = agent_detection_range;
-        this.last_direction_change_time = -1001;
-        this.last_time_spread_pheromone = -301;
+        this.last_time_spread_pheromone = -2001;
         this.age = 0;
     }
     
-    public void updateDirectionAndEat(ArrayList<Agent> agents, ArrayList<Food> food_sources, ArrayList<Pheromone> pheromones, double simulation_time, double height, double width) {
-        Food nearest_food = findNearestFoodSource(food_sources);
+    public void updateDirectionAndEat(ArrayList<Agent> agents, ArrayList<Food> food_sources, ArrayList<Pheromone> pheromones, double simulation_time) {
         this.is_eating = false;
+        this.can_move = true;
+        Food nearest_food = findNearestFoodSource(food_sources);
         if (nearest_food == null) {
             Pheromone nearest_pheromone = findNearestPheromone(pheromones);
             if (nearest_pheromone == null) {
-                // No food, no pheromone, random walk
-                if ((simulation_time - this.last_direction_change_time) >= this.time_between_change_of_direction_random_walk) {
-                    this.direction = this.getRandomDirectionCanva(height, width);
-                    // this.direction = this.getRandomDirection();
-                    this.last_direction_change_time = simulation_time;
-                }
+                this.updateRandomDirection();
             } else {
                 // There is a pheromone nearby
-                this.direction = this.getDirectionNormedToward(nearest_pheromone);
-                this.last_direction_change_time = simulation_time;
+                double[] direction_toward_pheromone = this.getDirectionNormedToward(nearest_pheromone);
+                changeDirection(direction_toward_pheromone);
             }
         } else {
             // There is food nearby
@@ -44,13 +42,27 @@ public class Agent extends Creature{
                 // The agent is on the food
                 this.eatFood(nearest_food, simulation_time);
                 this.is_eating = true;
-                this.direction = new double[]{0, 0};
-                this.last_direction_change_time = simulation_time - this.time_between_change_of_direction_random_walk;
+                this.can_move = false;
             } else {
-                this.direction = this.getDirectionNormedToward(nearest_food);this.direction = this.getDirectionNormedToward(nearest_food);
-                this.last_direction_change_time = simulation_time;
+                double[] direction_toward_food = this.getDirectionNormedToward(nearest_food);
+                changeDirection(direction_toward_food);
             }
         }
+    }
+
+    public void changeDirection(double[] new_direction) {
+        double direction_norm = this.getDirectionNorm(this.direction);
+        new_direction[0] = new_direction[0]*direction_norm;
+        new_direction[1] = new_direction[1]*direction_norm;
+        this.direction = new_direction;
+    }
+
+    public void updateRandomDirection() {
+        double[] random_direction = this.getRandomDirection();
+        double cosine_similarity = this.cosineSimilarity(this.direction, random_direction) * 0.5;
+        this.direction[0] += random_direction[0]*cosine_similarity;
+        this.direction[1] += random_direction[1]*cosine_similarity;
+        this.direction = this.normDirection(this.direction);
     }
 
     public HashMap<Agent, Double> getNearbyAgents(ArrayList<Agent> agents) {
@@ -154,9 +166,14 @@ public class Agent extends Creature{
         return this.is_eating;
     }
 
+    public boolean canMove() {
+        return this.can_move;
+    }
+
     public boolean getOlder() {
         this.age++;
-        double energy_to_lose = Math.max((int)((this.age + 10000)/ 10000), 0.5) / 10;
+        // double energy_to_lose = Math.max((int)((this.age + 10000)/ 10000), 0.5) / 20;
+        double energy_to_lose = 0.05;
         this.modifyEnergyLevel(-energy_to_lose);
         if (this.energy_level <= 0) {
             return true;
@@ -168,21 +185,24 @@ public class Agent extends Creature{
         Agent child = null;
         if (this.energy_level >= energy_level_required) {
             ArrayList<int[]> genotype = this.genotype.getChildGenotype(mutation_probability);
-            child = new Agent(this.x, this.y, this.base_energy_level, genotype.get(0), genotype.get(1), this.class_type, this.speed, this.food_detection_range, this.agent_detection_range);
+            child = new Agent(this.x, this.y, this.base_energy_level, genotype.get(0), genotype.get(1), this.class_type, this.speed, this.food_detection_range, this.agent_detection_range, this.simulation_height, this.simulation_width);
             this.modifyEnergyLevel(-reproduction_cost);
         }
         return child;
     }
 
     public boolean spreadPheromone(double current_time) {
-        if ((current_time - last_time_spread_pheromone) > 250) {
+        if ((current_time - last_time_spread_pheromone) > 2000) {
             boolean spread_or_not = genotype.spreadOrNot();
             if (spread_or_not) {
-                last_time_spread_pheromone = current_time;
                 return true;
             }
         }
         return false;
+    }
+
+    public void updateLastPheromone(double current_time) {
+        last_time_spread_pheromone = current_time;
     }
 
     public double getSpreadProba() {

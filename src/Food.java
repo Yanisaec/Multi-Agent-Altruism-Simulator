@@ -6,8 +6,8 @@ public class Food extends Element{
     private boolean is_empty;
     private double when_became_empty;
 
-    public Food(double x, double y, double nutritive_value, double regeneration_pace, double max_supply) {
-        super(x, y);
+    public Food(double x, double y, double nutritive_value, double regeneration_pace, double max_supply, double height, double width) {
+        super(x, y, height, width);
         this.nutritive_value = nutritive_value;
         this.regeneration_pace = regeneration_pace;
         this.max_supply = max_supply;
