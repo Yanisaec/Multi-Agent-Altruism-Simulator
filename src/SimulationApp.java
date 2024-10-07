@@ -167,7 +167,7 @@ public class SimulationApp extends Application {
             }
             double agentX = agent.getX();
             double agentY = agent.getY();
-            double energy = agent.getEnergyLevel();  // Assuming `getEnergy()` returns the agent's energy level
+            double energy = agent.getEnergyLevel();
             double food_detection_range = agent.getFoodDetectionRange()*2;
             // double agent_detection_range = agent.getAgentDetectionRange()*2;
             

@@ -31,11 +31,14 @@ public class Element {
         return Math.sqrt(Math.pow((this.x - element.x),2) + Math.pow((this.y - element.y),2));
     }
 
-    public double[] getDirectionNormedToward(Element element) {
+    public double[] getDirectionNormedToward(double[] old_direction, Element element) {
         double direction_norm;
         double[] direction = new double[2];
         direction[0] = element.x - this.x;
         direction[1] = element.y - this.y;
+        if (direction[0] == 0 && direction[1] == 0) {
+            return old_direction;
+        }
         direction_norm = Math.sqrt(Math.pow(direction[0],2) + Math.pow(direction[1],2)) / 2;
         direction[0] /= direction_norm;
         direction[1] /= direction_norm;
@@ -43,10 +46,11 @@ public class Element {
     }
 
     public double[] getRandomDirectionCanva(double height, double width) {
+        double[] base_direction = new double[]{0,0};
         double random_x = Math.random()*width;
         double random_y = Math.random()*height;
         Element point = new Element(random_x, random_y, height, width);
-        double[] random_direction = this.getDirectionNormedToward(point);
+        double[] random_direction = this.getDirectionNormedToward(base_direction, point);
         // double[] random_direction = new double[]{Math.random()*2 - 1.0, Math.random()*2 - 1.0};
         return random_direction;
     }

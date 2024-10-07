@@ -43,8 +43,8 @@ public class Simulation {
                 if (agent.spreadPheromone(currentTime)) {
                     Pheromone new_pheromone = new Pheromone(agent.getX(), agent.getY(), config.getPheromoneLifeSpan(), config.getPheromoneRadius(), this.simulation_height, this.simulation_width);
                     pheromonesToAdd.add(new_pheromone);
-                    // agent.updateLastPheromone(currentTime);
-                    // agent.modifyEnergyLevel(-config.getPheromoneEnergyCost());
+                    agent.updateLastPheromone(currentTime);
+                    agent.modifyEnergyLevel(-config.getPheromoneEnergyCost());
                 }
             }
         }

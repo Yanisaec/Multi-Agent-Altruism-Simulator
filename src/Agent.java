@@ -33,7 +33,7 @@ public class Agent extends Creature{
                 this.updateRandomDirection();
             } else {
                 // There is a pheromone nearby
-                double[] direction_toward_pheromone = this.getDirectionNormedToward(nearest_pheromone);
+                double[] direction_toward_pheromone = this.getDirectionNormedToward(this.direction, nearest_pheromone);
                 changeDirection(direction_toward_pheromone);
             }
         } else {
@@ -44,7 +44,7 @@ public class Agent extends Creature{
                 this.is_eating = true;
                 this.can_move = false;
             } else {
-                double[] direction_toward_food = this.getDirectionNormedToward(nearest_food);
+                double[] direction_toward_food = this.getDirectionNormedToward(this.direction, nearest_food);
                 changeDirection(direction_toward_food);
             }
         }
@@ -192,7 +192,7 @@ public class Agent extends Creature{
     }
 
     public boolean spreadPheromone(double current_time) {
-        if ((current_time - last_time_spread_pheromone) > 2000) {
+        if ((current_time - last_time_spread_pheromone) >= 1) {
             boolean spread_or_not = genotype.spreadOrNot();
             if (spread_or_not) {
                 return true;
