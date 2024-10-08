@@ -1,8 +1,11 @@
 import javafx.application.Application;
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
@@ -17,16 +20,17 @@ public class MultipleSimulation extends Application {
     private Config config;
     private double height;
     private double width;
-    private double average_spread_proba_across_sims;
+    private double average_part_of_altruists_across_sims;
     private XYChart.Series<Number, Number> spreadProbabilitySeries;  // For average spread probability chart data
     private XYChart.Series<Number, Number> simulationsRunningSeries;  // For simulations running chart data
+    private XYChart.Series<Number, Number> numberAgentsSeries; 
 
     @Override
     public void start(Stage stage) {
         config = loadConfig();
-        height = 600;
+        height = 1000;
         width = 1000;
-        average_spread_proba_across_sims = 0;
+        average_part_of_altruists_across_sims = 0;
         
         // Initialize simulations
         simulations = new ArrayList<>();
@@ -41,34 +45,69 @@ public class MultipleSimulation extends Application {
         NumberAxis yAxis1 = new NumberAxis(0, 1, 0.1);  // Fixed bounds between 0 and 1
         yAxis1.setAutoRanging(false);  // Disable auto-ranging to enforce the bounds
         xAxis1.setLabel("Iteration");
-        yAxis1.setLabel("Average Spread Probability");
+        yAxis1.setLabel("Part of Altruists");
 
         LineChart<Number, Number> spreadProbabilityChart = new LineChart<>(xAxis1, yAxis1);
-        spreadProbabilityChart.setTitle("Average Spread Probability Across Simulations");
+        spreadProbabilityChart.setTitle("Part of Altruists Across Simulations");
+        spreadProbabilityChart.setVerticalGridLinesVisible(false);
 
         spreadProbabilitySeries = new XYChart.Series<>();
-        spreadProbabilitySeries.setName("Average Spread Probability");
+        spreadProbabilitySeries.setName("Part of Altruists");
         spreadProbabilityChart.getData().add(spreadProbabilitySeries);
 
         // Create chart for Number of Simulations Running
         NumberAxis xAxis2 = new NumberAxis();
-        NumberAxis yAxis2 = new NumberAxis();  // Auto-ranging
+        NumberAxis yAxis2 = new NumberAxis(0, 100, 1);
+        yAxis2.setAutoRanging(false);
         xAxis2.setLabel("Iteration");
         yAxis2.setLabel("Number of Simulations Running");
 
         LineChart<Number, Number> simulationsRunningChart = new LineChart<>(xAxis2, yAxis2);
         simulationsRunningChart.setTitle("Number of Simulations Still Running");
+        simulationsRunningChart.setVerticalGridLinesVisible(false);
 
         simulationsRunningSeries = new XYChart.Series<>();
         simulationsRunningSeries.setName("Simulations Running");
-        simulationsRunningChart.getData().add(simulationsRunningSeries);
+        simulationsRunningChart.getData().add(simulationsRunningSeries);      
 
-        // Add both charts to the scene
-        VBox vbox = new VBox(spreadProbabilityChart, simulationsRunningChart);
-        Scene scene = new Scene(vbox, 800, 800);
+        // Create char for average number of agents across simulations
+        NumberAxis xAxis3 = new NumberAxis();
+        NumberAxis yAxis3 = new NumberAxis();  // Auto-ranging
+        xAxis3.setLabel("Iteration");
+        yAxis3.setLabel("Average Number of Agents Across Simulations");
+
+        LineChart<Number, Number> numberAgentsChart = new LineChart<>(xAxis3, yAxis3);
+        numberAgentsChart.setTitle("Average Number of Agents Across Simulations");
+        numberAgentsChart.setVerticalGridLinesVisible(false);
+
+        numberAgentsSeries = new XYChart.Series<>();
+        numberAgentsSeries.setName("Number of Agents");
+        numberAgentsChart.getData().add(numberAgentsSeries);
+
+        // Create the GridPane for layout
+        GridPane gridPane = new GridPane();
+        gridPane.setPadding(new Insets(10));
+        gridPane.setHgap(10);  // Horizontal gap between columns
+        gridPane.setVgap(10);  // Vertical gap between rows
+
+        // Add charts to the grid: 2x2 layout
+        gridPane.add(spreadProbabilityChart, 0, 0);  // Column 0, Row 0
+        gridPane.add(simulationsRunningChart, 1, 0);  // Column 1, Row 0
+        gridPane.add(numberAgentsChart, 0, 1);  // Column 0, Row 1
+
+        // Make the charts resize with the window
+        GridPane.setVgrow(spreadProbabilityChart, javafx.scene.layout.Priority.ALWAYS);
+        GridPane.setVgrow(simulationsRunningChart, javafx.scene.layout.Priority.ALWAYS);
+        GridPane.setVgrow(numberAgentsChart, javafx.scene.layout.Priority.ALWAYS);
+        GridPane.setHgrow(spreadProbabilityChart, javafx.scene.layout.Priority.ALWAYS);
+        GridPane.setHgrow(simulationsRunningChart, javafx.scene.layout.Priority.ALWAYS);
+        GridPane.setHgrow(numberAgentsChart, javafx.scene.layout.Priority.ALWAYS);
+
+        // Adjust the scene size if needed
+        Scene scene = new Scene(gridPane);
 
         scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
-        
+
         stage.setScene(scene);
         stage.show();
 
@@ -77,8 +116,9 @@ public class MultipleSimulation extends Application {
     }
 
     private void run() {
-        for (int i = 0; i < 100000; i++) {
-            average_spread_proba_across_sims = 0;
+        for (int i = 0; i < 10000000; i++) {
+            average_part_of_altruists_across_sims = 0;
+            double average_number_of_agents = 0;
             ArrayList<Simulation> simulations_to_remove = new ArrayList<>();
             
             for (Simulation simulation : simulations) {
@@ -97,21 +137,27 @@ public class MultipleSimulation extends Application {
 
             double number_of_simulations = simulations.size();
             for (Simulation simulation : simulations) {
-                average_spread_proba_across_sims += simulation.getAverageSpreadProba();
+                average_part_of_altruists_across_sims += simulation.getPartOfAltruists();
+                // average_part_of_altruists_across_sims += simulation.getAverageSpreadProba();
+                average_number_of_agents += simulation.getNumberAgents();
             }
 
+
             if (number_of_simulations > 0) {
-                average_spread_proba_across_sims /= number_of_simulations;
+                average_part_of_altruists_across_sims /= number_of_simulations;
+                average_number_of_agents /= number_of_simulations;
             }
 
             // Update the charts with the new values
             final int iteration = i;
-            final double currentAverageSpreadProba = average_spread_proba_across_sims;
+            final double currentAveragePartAltruists = average_part_of_altruists_across_sims;
             final double currentSimulationsRunning = number_of_simulations;
-            if (i % 100 == 0) {
+            final double currentAverageNumberAgents = average_number_of_agents;
+            if (i % 1000 == 0) {
                 javafx.application.Platform.runLater(() -> {
-                    spreadProbabilitySeries.getData().add(new XYChart.Data<>(iteration, currentAverageSpreadProba));
+                    spreadProbabilitySeries.getData().add(new XYChart.Data<>(iteration, currentAveragePartAltruists));
                     simulationsRunningSeries.getData().add(new XYChart.Data<>(iteration, currentSimulationsRunning));
+                    numberAgentsSeries.getData().add(new XYChart.Data<>(iteration, currentAverageNumberAgents));
                 });
             }
         }
@@ -124,6 +170,9 @@ public class MultipleSimulation extends Application {
         for (int i = 0; i < config.getNumberOfEgoisticAgents(); i++) {
             simulation.addEgoisticAgent();
         }        
+        for (int i= 0; i < config.getNumberOfRandomAgents(); i ++) {
+            simulation.addRandomAgent();
+        }
         for (int i = 0; i < config.getNumberOfFoodSpots(); i++) {
             simulation.addRandomFood();
         }

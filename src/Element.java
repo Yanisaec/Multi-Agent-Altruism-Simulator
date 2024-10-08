@@ -37,7 +37,7 @@ public class Element {
         direction[0] = element.x - this.x;
         direction[1] = element.y - this.y;
         if (direction[0] == 0 && direction[1] == 0) {
-            return old_direction;
+            return getRandomDirection();
         }
         direction_norm = Math.sqrt(Math.pow(direction[0],2) + Math.pow(direction[1],2)) / 2;
         direction[0] /= direction_norm;

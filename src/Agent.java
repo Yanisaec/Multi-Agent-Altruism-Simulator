@@ -5,14 +5,15 @@ public class Agent extends Creature{
     private Genotype genotype;
     private double food_detection_range;
     private double agent_detection_range;
-    // private double time_between_change_of_direction_random_walk = 500;
+    private double energy_level_to_reproduce;
     private boolean is_eating = false;
     private boolean can_move = true;
-    // private double last_time_spread_pheromone; 
     private boolean is_a_pheromone_producer;
     private int age;
+    private boolean can_reproduce;
+    private double mutation_probability;
     
-    public Agent(double x, double y, double energy_level, int[] allele1, int[] allele2, String class_type, double speed, double food_detection_range, double agent_detection_range, double height, double width) {
+    public Agent(double x, double y, double energy_level, double energy_to_reproduce,int[] allele1, int[] allele2, String class_type, double speed, double food_detection_range, double agent_detection_range, double mutation_probability, double height, double width) {
         super(x, y, energy_level, class_type, speed, height, width);
         this.direction = this.getRandomDirection();
         this.direction[0] = this.direction[0] * this.speed;
@@ -20,36 +21,62 @@ public class Agent extends Creature{
         this.genotype = new Genotype(allele1, allele2);
         this.food_detection_range = food_detection_range;
         this.agent_detection_range = agent_detection_range;
-        // this.last_time_spread_pheromone = -2001;
+        this.energy_level_to_reproduce = energy_to_reproduce;
         this.age = 0;
         this.is_a_pheromone_producer = genotype.isAProducer();
+        this.can_reproduce = false;
+        this.mutation_probability = mutation_probability;
     }
     
-    public void updateDirectionAndEat(ArrayList<Agent> agents, ArrayList<Food> food_sources, ArrayList<Pheromone> pheromones, double simulation_time) {
+    public Agent updateDirectionAndEat(ArrayList<Agent> agents, ArrayList<Food> food_sources, ArrayList<Pheromone> pheromones, double simulation_time) {
         this.is_eating = false;
         this.can_move = true;
+        Agent potential_child = null;
+
         Food nearest_food = findNearestFoodSource(food_sources);
-        if (nearest_food == null) {
-            Pheromone nearest_pheromone = findNearestPheromone(pheromones);
-            if (nearest_pheromone == null) {
-                this.updateRandomDirection();
-            } else {
-                // There is a pheromone nearby
-                double[] direction_toward_pheromone = this.getDirectionNormedToward(this.direction, nearest_pheromone);
-                changeDirection(direction_toward_pheromone);
-            }
-        } else {
+        if (!(nearest_food == null)) {
             // There is food nearby
             if (this.distanceToElement(nearest_food) < 5) {
                 // The agent is on the food
                 this.eatFood(nearest_food, simulation_time);
                 this.is_eating = true;
                 this.can_move = false;
+                return potential_child;
             } else {
                 double[] direction_toward_food = this.getDirectionNormedToward(this.direction, nearest_food);
                 changeDirection(direction_toward_food);
+                return potential_child;
             }
         }
+        
+        if (canReproduce()){
+            Agent nearest_agent = findNearestAgent(agents);
+            if (!(nearest_agent == null) && (this.distanceToElement(nearest_agent) < 5)) {
+                potential_child = reproduce(nearest_agent);
+                this.modifyEnergyLevel(-energy_level_to_reproduce);
+                nearest_agent.modifyEnergyLevel(-energy_level_to_reproduce);
+                this.hasReproduced();
+                nearest_agent.hasReproduced();
+                return potential_child;
+            } else if (!(nearest_agent == null)) { // agent not close enough to reproduce
+                double[] direction_toward_agent = this.getDirectionNormedToward(this.direction, nearest_agent);
+                changeDirection(direction_toward_agent);
+                return potential_child;
+            }
+        }
+
+        Pheromone nearest_pheromone = findNearestPheromone(pheromones);
+        if (!(nearest_pheromone == null) && is_a_pheromone_producer) {
+            // There is a pheromone nearby and agent can sense them
+            double[] direction_toward_pheromone = this.getDirectionNormedToward(this.direction, nearest_pheromone);
+            direction_toward_pheromone[0] *= 1.5;
+            direction_toward_pheromone[1] *= 1.5;
+            changeDirection(direction_toward_pheromone);
+            return potential_child;             
+        }
+
+        this.updateRandomDirection();
+        return potential_child;
     }
 
     public void changeDirection(double[] new_direction) {
@@ -109,12 +136,26 @@ public class Agent extends Creature{
         double min_distance = Double.POSITIVE_INFINITY;
         Agent best_agent = null;
         for (Agent agent : agentHashMap.keySet()) {
-            if (agentHashMap.get(agent) < min_distance) {
+            if (agentHashMap.get(agent) < min_distance && agent.canReproduce()) {
                 best_agent = agent;
                 min_distance = agentHashMap.get(agent);
             }
         }
         return best_agent;
+    }
+
+    public double getNumberOfNearbyEatingAgents(ArrayList<Agent> agents) {
+        double number_of_agents_nearby = 0;
+        for (int i = 0; i < agents.size(); i++) {
+            if (!this.equals(agents.get(i))) {
+                double distance = this.distanceToElement(agents.get(i));
+                if (distance < 20 && agents.get(i).isEating()) {
+                    number_of_agents_nearby += 1;
+                }
+            }
+        }
+        number_of_agents_nearby = Math.max(2.5,number_of_agents_nearby);
+        return Math.min(1,number_of_agents_nearby);
     }
         
     public Food findNearestFoodSource(ArrayList<Food> food_sources) {
@@ -164,12 +205,24 @@ public class Agent extends Creature{
         return this.age;
     }
 
+    public boolean canReproduce() {
+        return this.can_reproduce;
+    }
+
     public boolean isEating() {
         return this.is_eating;
     }
 
     public boolean canMove() {
         return this.can_move;
+    }
+
+    public void updateReproductiveStatus() {
+        if (this.energy_level > energy_level_to_reproduce) {
+            this.can_reproduce = true;
+        } else {
+            this.can_reproduce = false;
+        }
     }
 
     public boolean getOlder() {
@@ -183,32 +236,30 @@ public class Agent extends Creature{
         return false;
     }
 
-    public Agent reproduce(double energy_level_required, double reproduction_cost, double mutation_probability) {
+    public void hasReproduced() {
+        this.can_reproduce = false;
+    }
+
+    public Agent reproduce(Agent other_parent) {
         Agent child = null;
-        if (this.energy_level >= energy_level_required) {
-            ArrayList<int[]> genotype = this.genotype.getChildGenotype(mutation_probability);
-            child = new Agent(this.x, this.y, this.base_energy_level, genotype.get(0), genotype.get(1), this.class_type, this.speed, this.food_detection_range, this.agent_detection_range, this.simulation_height, this.simulation_width);
-            this.modifyEnergyLevel(-reproduction_cost);
-        }
+        ArrayList<int[]> genotype = this.genotype.getChildCoupleChildrenGenotype(this.getGenotype(), other_parent.getGenotype(), mutation_probability);
+        child = new Agent(this.x, this.y, this.base_energy_level, this.energy_level_to_reproduce, genotype.get(0), genotype.get(1), this.class_type, this.speed, this.food_detection_range, this.agent_detection_range, this.mutation_probability, this.simulation_height, this.simulation_width);
         return child;
     }
 
-    public boolean spreadPheromone(double current_time) {
-        return is_a_pheromone_producer;
-        // if ((current_time - last_time_spread_pheromone) >= 1) {
-        //     boolean spread_or_not = genotype.spreadOrNot();
-        //     if (spread_or_not) {
-        //         return true;
-        //     }
-        // }
-        // return false;
+    public boolean spreadPheromone(double current_time, ArrayList<Pheromone> pheromones) {
+        Pheromone is_there_pheromone_nearby = findNearestPheromone(pheromones);
+        if (is_there_pheromone_nearby == null) {
+            return is_a_pheromone_producer;
+        } 
+        return false;
     }
-
-    // public void updateLastPheromone(double current_time) {
-    //     last_time_spread_pheromone = current_time;
-    // }
 
     public double getSpreadProba() {
         return genotype.getSpreadProba();
+    }
+
+    public boolean isAProducer() {
+        return is_a_pheromone_producer;
     }
 }

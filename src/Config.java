@@ -1,6 +1,7 @@
 public class Config {
     private int number_of_altruistic_agents;
     private int number_of_egoistic_agents;
+    private int number_of_random_agents;
     private int number_of_food_spots;
     private double moving_speed;
     private double agent_base_energy_level;
@@ -20,6 +21,7 @@ public class Config {
 
     public int getNumberOfAltruisticAgents() { return number_of_altruistic_agents; }
     public int getNumberOfEgoisticAgents() { return number_of_egoistic_agents; }
+    public int getNumberOfRandomAgents() { return number_of_random_agents; }
     public int getNumberOfFoodSpots() { return number_of_food_spots; }
     public double getAgentBaseEnergyLevel() { return agent_base_energy_level; }
     public double getMovingSpeed() { return moving_speed; }

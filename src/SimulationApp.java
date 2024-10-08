@@ -93,6 +93,9 @@ public class SimulationApp extends Application {
         for (int i = 0; i < config.getNumberOfEgoisticAgents(); i++) {
             simulation.addEgoisticAgent();
         }        
+        for (int i= 0; i < config.getNumberOfRandomAgents(); i ++) {
+            simulation.addRandomAgent();
+        }
         for (int i = 0; i < config.getNumberOfFoodSpots(); i++) {
             simulation.addRandomFood();
         }
@@ -133,17 +136,13 @@ public class SimulationApp extends Application {
         gc.setFill(Color.BLACK); // Set fill color for text
         gc.fillText("Number of agents: " + number_agents_string, 10, 20);
         
-        double sum_spread_probas = 0;
-        for (Agent agent : agents) {
-            sum_spread_probas += agent.getSpreadProba();
-        }
-        double average_spread_proba = sum_spread_probas / number_of_agents;
+        double average_spread_proba = simulation.getPartOfAltruists();
         String average_spread_proba_string = String.format("%.2f", average_spread_proba);
         gc.fillText("Average spread probability: " + average_spread_proba_string, 10, 40);
         
         double agentSize = 10;
         for (Agent agent : agents) {
-            if (agent.getSpreadProba() > 0.5) {
+            if (agent.isAProducer()) {
                 gc.setFill(Color.BLUE);
             } else {
                 gc.setFill(Color.RED);

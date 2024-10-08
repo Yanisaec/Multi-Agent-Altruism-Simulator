@@ -41,6 +41,51 @@ public class Genotype {
         return child_genotype;
     }
 
+    public ArrayList<int[]> getChildCoupleChildrenGenotype(Genotype parent1, Genotype parent2, double mutation_probability) {
+        int[] allele1_1 = parent1.getAllele1();
+        int[] allele2_1 = parent1.getAllele1();        
+        int[] allele1_2 = parent1.getAllele2();
+        int[] allele2_2 = parent1.getAllele2();
+        
+        ArrayList<int[]> child_genotype = new ArrayList<>();
+        int allele_length = allele1_1.length;
+        int[] child_allele1 = new int[allele_length];
+        int[] child_allele2 = new int[allele_length];
+
+        for (int i = 0; i < allele_length; i++) {
+            if (random.nextDouble() < 0.5) {
+                if (random.nextDouble() < mutation_probability) {
+                    child_allele1[i] = allele1_1[i]^1;
+                } else {
+                    child_allele1[i] = allele1_1[i];
+                }
+            } else {
+                if (random.nextDouble() < mutation_probability) {
+                    child_allele1[i] = allele2_1[i]^1;
+                } else {
+                    child_allele1[i] = allele2_1[i];
+                }
+            }
+            
+            if (random.nextDouble() < 0.5) {
+                if (random.nextDouble() < mutation_probability) {
+                    child_allele1[i] = allele1_2[i]^1;
+                } else {
+                    child_allele1[i] = allele1_2[i];
+                }
+            } else {
+                if (random.nextDouble() < mutation_probability) {
+                    child_allele1[i] = allele2_2[i]^1;
+                } else {
+                    child_allele1[i] = allele2_2[i];
+                }
+            }
+        }
+        child_genotype.add(child_allele1);
+        child_genotype.add(child_allele2);
+        return child_genotype;
+    }
+
     public boolean spreadOrNot() {
         double proba = getSpreadProba();
         // if (random.nextDouble() < proba) {
@@ -56,9 +101,18 @@ public class Genotype {
         double allele_length = allele1.length;
         double sum_of_ones = 0;
         for (int i = 0; i < allele_length; i++) {
-            sum_of_ones += Math.max(allele1[i], allele2[i]);
+            if (random.nextDouble() < 0.5) {
+                sum_of_ones += allele1[i];
+            } else {
+                sum_of_ones += allele2[i];
+            }
+            // sum_of_ones += Math.max(allele1[i], allele2[i]);
+            // sum_of_ones += Math.min(allele1[i], allele2[i]);
+            // sum_of_ones += allele2[i];
+            // sum_of_ones += allele1[i];
         }
         double proba = sum_of_ones / allele_length;
+        // double proba = sum_of_ones / (allele_length*2);
 
         return proba;
     }

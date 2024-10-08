@@ -28,8 +28,10 @@ public class Creature extends Element{
         double distance_to_horizontal_sides = Math.min(this.y % this.simulation_height, (this.simulation_height-this.y) % this.simulation_height);
         if ((distance_to_horizontal_sides < 10))  {
             this.direction[1] = -this.direction[1];
+            this.direction[0] = -this.direction[0];
         }
         if ((distance_to_vertical_sides < 10))  {
+            this.direction[1] = -this.direction[1];
             this.direction[0] = -this.direction[0];
         } 
     }
