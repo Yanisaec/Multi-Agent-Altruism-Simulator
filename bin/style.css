@@ -1,0 +1,4 @@
+.chart-line-symbol {
+    -fx-background-radius: 0;   /* Reduce point size to 0 */
+    -fx-padding: 0;             /* Remove padding around points */
+}

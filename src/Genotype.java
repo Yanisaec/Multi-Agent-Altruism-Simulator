@@ -56,12 +56,19 @@ public class Genotype {
         double allele_length = allele1.length;
         double sum_of_ones = 0;
         for (int i = 0; i < allele_length; i++) {
-            sum_of_ones += allele1[i];
-            sum_of_ones += allele2[i];
+            sum_of_ones += Math.max(allele1[i], allele2[i]);
         }
-        double proba = sum_of_ones / (allele_length*2);
+        double proba = sum_of_ones / allele_length;
 
         return proba;
+    }
+
+    public boolean isAProducer(){
+        double spread_proba = getSpreadProba();
+        if (spread_proba > random.nextDouble()) {
+            return true;
+        }
+        return false;
     }
 
     public List<int[]> getGenotype() {

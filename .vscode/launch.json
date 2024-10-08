@@ -7,6 +7,14 @@
 
         {
             "type": "java",
+            "name": "MultipleSimulation",
+            "request": "launch",
+            "mainClass": "MultipleSimulation",
+            "vmArgs": "--module-path C:/Users/boite/javafx-sdk-23/lib --add-modules javafx.controls,javafx.fxml",
+            "projectName": "Multi_Agent_Altruism_Simulation_f795613b"
+        },
+        {
+            "type": "java",
             "name": "Current File",
             "request": "launch",
             "mainClass": "${file}"

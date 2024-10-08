@@ -5,10 +5,11 @@ public class Agent extends Creature{
     private Genotype genotype;
     private double food_detection_range;
     private double agent_detection_range;
-    private double time_between_change_of_direction_random_walk = 500;
+    // private double time_between_change_of_direction_random_walk = 500;
     private boolean is_eating = false;
     private boolean can_move = true;
-    private double last_time_spread_pheromone; 
+    // private double last_time_spread_pheromone; 
+    private boolean is_a_pheromone_producer;
     private int age;
     
     public Agent(double x, double y, double energy_level, int[] allele1, int[] allele2, String class_type, double speed, double food_detection_range, double agent_detection_range, double height, double width) {
@@ -19,8 +20,9 @@ public class Agent extends Creature{
         this.genotype = new Genotype(allele1, allele2);
         this.food_detection_range = food_detection_range;
         this.agent_detection_range = agent_detection_range;
-        this.last_time_spread_pheromone = -2001;
+        // this.last_time_spread_pheromone = -2001;
         this.age = 0;
+        this.is_a_pheromone_producer = genotype.isAProducer();
     }
     
     public void updateDirectionAndEat(ArrayList<Agent> agents, ArrayList<Food> food_sources, ArrayList<Pheromone> pheromones, double simulation_time) {
@@ -192,18 +194,19 @@ public class Agent extends Creature{
     }
 
     public boolean spreadPheromone(double current_time) {
-        if ((current_time - last_time_spread_pheromone) >= 1) {
-            boolean spread_or_not = genotype.spreadOrNot();
-            if (spread_or_not) {
-                return true;
-            }
-        }
-        return false;
+        return is_a_pheromone_producer;
+        // if ((current_time - last_time_spread_pheromone) >= 1) {
+        //     boolean spread_or_not = genotype.spreadOrNot();
+        //     if (spread_or_not) {
+        //         return true;
+        //     }
+        // }
+        // return false;
     }
 
-    public void updateLastPheromone(double current_time) {
-        last_time_spread_pheromone = current_time;
-    }
+    // public void updateLastPheromone(double current_time) {
+    //     last_time_spread_pheromone = current_time;
+    // }
 
     public double getSpreadProba() {
         return genotype.getSpreadProba();

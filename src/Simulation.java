@@ -10,17 +10,19 @@ public class Simulation {
     private Random random = new Random();
     private double simulation_height;
     private double simulation_width;
+    private Config config;
     
-    public Simulation(double height, double width) {
+    public Simulation(Config config, double height, double width) {
         this.aliveAgents = new ArrayList<>();
         this.foods = new ArrayList<>();
         this.pheromones = new ArrayList<>();
         this.currentTime = 0;
         this.simulation_height = height;
         this.simulation_width = width;
+        this.config = config;
     }
 
-    public void updateSimulation(Config config) {
+    public void updateSimulation() {
         List<Agent> agentsToAdd = new ArrayList<>();
         List<Agent> agentsToRemove = new ArrayList<>();
         List<Pheromone> pheromonesToAdd = new ArrayList<>();
@@ -43,7 +45,7 @@ public class Simulation {
                 if (agent.spreadPheromone(currentTime)) {
                     Pheromone new_pheromone = new Pheromone(agent.getX(), agent.getY(), config.getPheromoneLifeSpan(), config.getPheromoneRadius(), this.simulation_height, this.simulation_width);
                     pheromonesToAdd.add(new_pheromone);
-                    agent.updateLastPheromone(currentTime);
+                    // agent.updateLastPheromone(currentTime);
                     agent.modifyEnergyLevel(-config.getPheromoneEnergyCost());
                 }
             }
@@ -107,7 +109,7 @@ public class Simulation {
         this.pheromones.remove(pheromone);
     }
 
-    public void addRandomAgent(Config config) {
+    public void addRandomAgent() {
         int allele_length = config.getAlleleLength();
         int[] allele1 = new int[allele_length];
         int[] allele2 = new int[allele_length];
@@ -118,7 +120,7 @@ public class Simulation {
         addAgent(Math.random()*simulation_width, Math.random()*simulation_height, config.getAgentBaseEnergyLevel(), allele1, allele2, "Agent1", config.getMovingSpeed(), config.getFoodDetectionRange(), config.getAgentDetectionRange());
     }
     
-    public void addAltruisticAgent(Config config) {
+    public void addAltruisticAgent() {
         int allele_length = config.getAlleleLength();
         int[] allele1 = new int[allele_length];
         int[] allele2 = new int[allele_length];
@@ -129,7 +131,7 @@ public class Simulation {
         addAgent(Math.random()*simulation_width, Math.random()*simulation_height, config.getAgentBaseEnergyLevel(), allele1, allele2, "Agent1", config.getMovingSpeed(), config.getFoodDetectionRange(), config.getAgentDetectionRange());
     }
     
-    public void addEgoisticAgent(Config config) {
+    public void addEgoisticAgent() {
         int allele_length = config.getAlleleLength();
         int[] allele1 = new int[allele_length];
         int[] allele2 = new int[allele_length];
@@ -140,7 +142,7 @@ public class Simulation {
         addAgent(Math.random()*simulation_width, Math.random()*simulation_height, config.getAgentBaseEnergyLevel(), allele1, allele2, "Agent1", config.getMovingSpeed(), config.getFoodDetectionRange(), config.getAgentDetectionRange());
     }
 
-    public void addRandomFood(Config config) {
+    public void addRandomFood() {
         addFood(Math.random()*simulation_width, Math.random()*simulation_height, config.getFoodNutritiveValue(), 1, config.getFoodMaxSupply());
     }
 
@@ -158,6 +160,23 @@ public class Simulation {
 
     public int getCurrentTime() {
         return this.currentTime;
+    }
+
+    public double getNumberAgents() {
+        double number_of_agents = aliveAgents.size();
+        return number_of_agents;
+    }
+
+    public double getAverageSpreadProba() {
+        List<Agent> agents = getAliveAgents();
+        double number_of_agents = getNumberAgents();
+        
+        double sum_spread_probas = 0;
+        for (Agent agent : agents) {
+            sum_spread_probas += agent.getSpreadProba();
+        }
+        double average_spread_proba = sum_spread_probas / number_of_agents;
+        return average_spread_proba;
     }
 
     public void incrementTime() {

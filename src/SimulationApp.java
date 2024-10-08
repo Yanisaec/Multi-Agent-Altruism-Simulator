@@ -5,27 +5,18 @@ import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import com.google.gson.Gson;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-
-import com.google.gson.Gson;
 
 public class SimulationApp extends Application {
     private Simulation simulation;
     private boolean isPaused = false;
-    private Image agentSprite;
-    private Image foodSprite;
     private double simulation_height = 600;
     private double simulation_width = 1000;
     private int iterations = 0;
@@ -44,10 +35,8 @@ public class SimulationApp extends Application {
         config = loadConfig();
 
         // Initialize the simulation
-        simulation = new Simulation(simulation_height, simulation_width);
+        simulation = new Simulation(config, simulation_height, simulation_width);
         initializeSimulation();
-        agentSprite = new Image("file:C:/Users/boite/Desktop/altruism_simulation/Multi_Agent_Altruism_Simulation/src/agent.png");
-        foodSprite = new Image("file:C:/Users/boite/Desktop/altruism_simulation/Multi_Agent_Altruism_Simulation/src/food.png");
 
         // Set up the canvas
         Group root = new Group();
@@ -94,24 +83,18 @@ public class SimulationApp extends Application {
     private void drawingStep(GraphicsContext gc, Canvas canvas) {
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
         drawElements(gc);
-        simulation.updateSimulation(config);
+        simulation.updateSimulation();
     }
 
     private void initializeSimulation() {
-        // int[] allele1 = {1,0,0,1};
-        // int[] allele2 = {1,1,1,0};
-        // simulation.addAgent(200, 200, 500, allele1, allele2, "Agent1", 0.2, 150, 100);
-        // simulation.addFood(200, 175, 50, 2, 100);
-        // simulation.addFood(200, 245, 50, 2, 100);
-
         for (int i = 0; i < config.getNumberOfAltruisticAgents(); i++) {
-            simulation.addAltruisticAgent(config);
+            simulation.addAltruisticAgent();
         }       
         for (int i = 0; i < config.getNumberOfEgoisticAgents(); i++) {
-            simulation.addEgoisticAgent(config);
+            simulation.addEgoisticAgent();
         }        
         for (int i = 0; i < config.getNumberOfFoodSpots(); i++) {
-            simulation.addRandomFood(config);
+            simulation.addRandomFood();
         }
     }
 
@@ -145,7 +128,7 @@ public class SimulationApp extends Application {
         }
         
         List<Agent> agents = simulation.getAliveAgents();
-        double number_of_agents = agents.size();
+        double number_of_agents = simulation.getNumberAgents();
         String number_agents_string = String.format("%.0f", number_of_agents);
         gc.setFill(Color.BLACK); // Set fill color for text
         gc.fillText("Number of agents: " + number_agents_string, 10, 20);
@@ -187,17 +170,17 @@ public class SimulationApp extends Application {
     }
 
     private Config loadConfig() {
-    Gson gson = new Gson();
-    Config config = null;
+        Gson gson = new Gson();
+        Config config = null;
 
-    try (FileReader reader = new FileReader("config.json")) {
-        config = gson.fromJson(reader, Config.class);
-    } catch (IOException e) {
-        e.printStackTrace();
+        try (FileReader reader = new FileReader("config.json")) {
+            config = gson.fromJson(reader, Config.class);
+        } catch (IOException e) {
+            e.printStackTrace();
     }
 
     return config;
-}
+    }
 
     public static void main(String[] args) {
         launch(args);
