@@ -14,12 +14,12 @@ public class Agent extends Creature{
     private boolean can_reproduce;
     private double mutation_probability;
     
-    public Agent(double x, double y, double energy_level, double energy_to_reproduce, double reproduction_cost, int[] allele1, int[] allele2, String class_type, double speed, double food_detection_range, double agent_detection_range, double mutation_probability, double height, double width) {
+    public Agent(double x, double y, double energy_level, double energy_to_reproduce, double reproduction_cost, Genotype genotype, String class_type, double speed, double food_detection_range, double agent_detection_range, double mutation_probability, double height, double width) {
         super(x, y, energy_level, class_type, speed, height, width);
         this.direction = this.getRandomDirection();
         this.direction[0] = this.direction[0] * this.speed;
         this.direction[1] = this.direction[1] * this.speed;
-        this.genotype = new Genotype(allele1, allele2);
+        this.genotype = genotype;
         this.food_detection_range = food_detection_range;
         this.agent_detection_range = agent_detection_range;
         this.energy_level_to_reproduce = energy_to_reproduce;
@@ -249,9 +249,8 @@ public class Agent extends Creature{
     }
 
     public Agent reproduce(Agent other_parent) {
-        Agent child = null;
-        ArrayList<int[]> genotype = this.genotype.getChildCoupleChildrenGenotype(this.getGenotype(), other_parent.getGenotype(), mutation_probability);
-        child = new Agent(this.x, this.y, this.base_energy_level, this.energy_level_to_reproduce, this.reproduction_cost, genotype.get(0), genotype.get(1), this.class_type, this.speed, this.food_detection_range, this.agent_detection_range, this.mutation_probability, this.simulation_height, this.simulation_width);
+        Genotype child_genotype = genotype.getChildCoupleChildrenGenotype(this.getGenotype(), other_parent.getGenotype(), mutation_probability);
+        Agent child = new Agent(this.x, this.y, this.base_energy_level, this.energy_level_to_reproduce, this.reproduction_cost, child_genotype, this.class_type, this.speed, this.food_detection_range, this.agent_detection_range, this.mutation_probability, this.simulation_height, this.simulation_width);
         return child;
     }
 
@@ -263,8 +262,8 @@ public class Agent extends Creature{
         return false;
     }
 
-    public double getSpreadProba() {
-        return genotype.getSpreadProba();
+    public double getSpreadPheromoneProba() {
+        return genotype.getSpreadPheromoneProba();
     }
 
     public boolean isAProducer() {

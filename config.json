@@ -8,7 +8,7 @@
     "agent_detection_range": 300,
     "energy_level_to_reproduce": 1200,
     "reproduction_cost": 300,
-    "allele_length": 100,
+    "allele_length": 10,
     "mutation_probability": 0.01,
 
     "number_of_food_spots": 15,

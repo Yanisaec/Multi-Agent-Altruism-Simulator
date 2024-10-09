@@ -3,139 +3,66 @@ import java.util.List;
 import java.util.Random;
 
 public class Genotype {
-    private List<int[]> genotype;
-    private int[] allele1;
-    private int[] allele2;
+    private Gene pheromone_gene;
+    private Gene repelant_gene;
     private Random random = new Random();
-    
-    public Genotype(int[] allele1, int[] allele2) {
-        List<int[]> genotype = new ArrayList<>();
-        this.allele1 = allele1;
-        this.allele2 = allele2;
-        genotype.add(allele1);
-        genotype.add(allele2);
-        this.genotype = genotype;
+
+    public Genotype(Gene pheromone_gene) {
+    // public Genotype2(Gene pheromone_gene, Gene repelant_gene) {
+        this.pheromone_gene = pheromone_gene;
+        // this.repelant_gene = repelant_gene;
     }
 
-    public ArrayList<int[]> getChildGenotype(double mutation_probability) {
-        ArrayList<int[]> child_genotype = new ArrayList<>();
-        int allele_length = allele1.length;
-        int[] child_allele1 = new int[allele_length];
-        int[] child_allele2 = new int[allele_length];
-        for (int i = 0; i < allele_length; i++) {
-            double randomValue1 = random.nextDouble();
-            if (randomValue1 < mutation_probability) {
-                child_allele1[i] = allele1[i]^1;
-            } else {
-                child_allele1[i] = allele1[i];
-            }
-            double randomValue2 = random.nextDouble();
-            if (randomValue2 < mutation_probability) {
-                child_allele2[i] = allele2[i]^1;
-            } else {
-                child_allele2[i] = allele2[i];
-            }
-        }
-        child_genotype.add(child_allele1);
-        child_genotype.add(child_allele2);
-        return child_genotype;
+    public Genotype getChildCoupleChildrenGenotype(Genotype parent1, Genotype parent2, double mutation_probability) {
+        Gene mutated_gene1 = pheromone_gene.getMutatedGene(mutation_probability);
+        Gene parent2_phero_gene = parent2.getPheromoneGene();
+        Gene mutated_gene2 = parent2_phero_gene.getMutatedGene(mutation_probability);
+        Gene children_phero_gene = getGeneFromParents(mutated_gene1, mutated_gene2);
+        Genotype child_genotype2 = new Genotype(children_phero_gene);
+        return child_genotype2;
     }
 
-    public ArrayList<int[]> getChildCoupleChildrenGenotype(Genotype parent1, Genotype parent2, double mutation_probability) {
-        int[] allele1_1 = parent1.getAllele1();
-        int[] allele2_1 = parent1.getAllele1();        
-        int[] allele1_2 = parent1.getAllele2();
-        int[] allele2_2 = parent1.getAllele2();
-        
-        ArrayList<int[]> child_genotype = new ArrayList<>();
-        int allele_length = allele1_1.length;
+    public Gene getGeneFromParents(Gene gene1, Gene gene2) {
+        int allele_length = pheromone_gene.getAlleleLength();
         int[] child_allele1 = new int[allele_length];
         int[] child_allele2 = new int[allele_length];
 
-        for (int i = 0; i < allele_length; i++) {
+        for (int i = 0; i < allele_length; i ++) {
             if (random.nextDouble() < 0.5) {
-                if (random.nextDouble() < mutation_probability) {
-                    child_allele1[i] = allele1_1[i]^1;
-                } else {
-                    child_allele1[i] = allele1_1[i];
-                }
+                child_allele1[i] = gene1.getAllele1().getI(i);
             } else {
-                if (random.nextDouble() < mutation_probability) {
-                    child_allele1[i] = allele2_1[i]^1;
-                } else {
-                    child_allele1[i] = allele2_1[i];
-                }
+                child_allele1[i] = gene2.getAllele1().getI(i);
             }
-            
             if (random.nextDouble() < 0.5) {
-                if (random.nextDouble() < mutation_probability) {
-                    child_allele1[i] = allele1_2[i]^1;
-                } else {
-                    child_allele1[i] = allele1_2[i];
-                }
+                child_allele2[i] = gene1.getAllele2().getI(i);
             } else {
-                if (random.nextDouble() < mutation_probability) {
-                    child_allele1[i] = allele2_2[i]^1;
-                } else {
-                    child_allele1[i] = allele2_2[i];
-                }
+                child_allele2[i] = gene2.getAllele2().getI(i);
             }
         }
-        child_genotype.add(child_allele1);
-        child_genotype.add(child_allele2);
-        return child_genotype;
+        Allele all1 = new Allele(child_allele1);
+        Allele all2 = new Allele(child_allele2);
+        Gene child_gene = new Gene(all1, all2);
+        return child_gene;
     }
 
-    public boolean spreadOrNot() {
-        double proba = getSpreadProba();
-        // if (random.nextDouble() < proba) {
-        //     return true;
-        // }
-        if (proba > 0.5) {
-            return true;
-        }
-        return false;
-    }
-
-    public double getSpreadProba() {
-        double allele_length = allele1.length;
-        double sum_of_ones = 0;
-        for (int i = 0; i < allele_length; i++) {
-            if (random.nextDouble() < 0.5) {
-                sum_of_ones += allele1[i];
-            } else {
-                sum_of_ones += allele2[i];
-            }
-            // sum_of_ones += Math.max(allele1[i], allele2[i]);
-            // sum_of_ones += Math.min(allele1[i], allele2[i]);
-            // sum_of_ones += allele2[i];
-            // sum_of_ones += allele1[i];
-        }
-        double proba = sum_of_ones / allele_length;
-        // double proba = sum_of_ones / (allele_length*2);
-
+    public double getSpreadPheromoneProba() {
+        double proba = pheromone_gene.getProba();
         return proba;
     }
 
     public boolean isAProducer(){
-        double spread_proba = getSpreadProba();
+        double spread_proba = getSpreadPheromoneProba();
         if (spread_proba > random.nextDouble()) {
             return true;
         }
         return false;
     }
 
-    public List<int[]> getGenotype() {
-        return this.genotype;
-    } 
-
-    public int[] getAllele1() {
-        int[] allele1 = this.genotype.get(0);
-        return allele1;
+    public Gene getPheromoneGene() {
+        return pheromone_gene;
     }
 
-    public int[] getAllele2() {
-        int[] allele2 = this.genotype.get(1);
-        return allele2;
+    public Gene getRepelantGene() {
+        return repelant_gene;
     }
 }

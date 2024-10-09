@@ -122,16 +122,6 @@ public class MultipleSimulation extends Application {
 
         // Run the simulation and update the charts
         new Thread(this::run).start();
-
-        // Save charts after the simulation ends (this could be triggered elsewhere as needed)
-        new Thread(() -> {
-            try {
-                Thread.sleep(5000);  // Wait for some time to ensure the charts are populated
-                saveChartsAsPng();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }).start();
     }
 
     private void run() {
@@ -180,6 +170,9 @@ public class MultipleSimulation extends Application {
                 });
             }
         }
+
+        // After the simulation is complete, save the charts
+        Platform.runLater(this::saveChartsAsPng);
     }
 
     private Simulation initializeSimulation(Simulation simulation) {
