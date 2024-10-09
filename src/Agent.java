@@ -10,10 +10,11 @@ public class Agent extends Creature{
     private boolean can_move = true;
     private boolean is_a_pheromone_producer;
     private int age;
+    private double reproduction_cost;
     private boolean can_reproduce;
     private double mutation_probability;
     
-    public Agent(double x, double y, double energy_level, double energy_to_reproduce,int[] allele1, int[] allele2, String class_type, double speed, double food_detection_range, double agent_detection_range, double mutation_probability, double height, double width) {
+    public Agent(double x, double y, double energy_level, double energy_to_reproduce, double reproduction_cost, int[] allele1, int[] allele2, String class_type, double speed, double food_detection_range, double agent_detection_range, double mutation_probability, double height, double width) {
         super(x, y, energy_level, class_type, speed, height, width);
         this.direction = this.getRandomDirection();
         this.direction[0] = this.direction[0] * this.speed;
@@ -22,6 +23,7 @@ public class Agent extends Creature{
         this.food_detection_range = food_detection_range;
         this.agent_detection_range = agent_detection_range;
         this.energy_level_to_reproduce = energy_to_reproduce;
+        this.reproduction_cost = reproduction_cost;
         this.age = 0;
         this.is_a_pheromone_producer = genotype.isAProducer();
         this.can_reproduce = false;
@@ -38,8 +40,8 @@ public class Agent extends Creature{
             // There is food nearby
             if (this.distanceToElement(nearest_food) < 5) {
                 // The agent is on the food
-                this.eatFood(nearest_food, simulation_time);
                 this.is_eating = true;
+                this.eatFood(nearest_food, simulation_time, agents);
                 this.can_move = false;
                 return potential_child;
             } else {
@@ -53,8 +55,8 @@ public class Agent extends Creature{
             Agent nearest_agent = findNearestAgent(agents);
             if (!(nearest_agent == null) && (this.distanceToElement(nearest_agent) < 5)) {
                 potential_child = reproduce(nearest_agent);
-                this.modifyEnergyLevel(-energy_level_to_reproduce);
-                nearest_agent.modifyEnergyLevel(-energy_level_to_reproduce);
+                this.modifyEnergyLevel(-reproduction_cost);
+                nearest_agent.modifyEnergyLevel(-reproduction_cost);
                 this.hasReproduced();
                 nearest_agent.hasReproduced();
                 return potential_child;
@@ -154,8 +156,7 @@ public class Agent extends Creature{
                 }
             }
         }
-        number_of_agents_nearby = Math.max(2.5,number_of_agents_nearby);
-        return Math.min(1,number_of_agents_nearby);
+        return number_of_agents_nearby;
     }
         
     public Food findNearestFoodSource(ArrayList<Food> food_sources) {
@@ -184,8 +185,15 @@ public class Agent extends Creature{
         return best_pheronome;
     }
 
-    public void eatFood(Food food, double current_time) {
-        double nutritive_value = food.isEaten(1, current_time);
+    public void eatFood(Food food, double current_time, ArrayList<Agent> agents) {
+        double eating_agent_nearby = getNumberOfNearbyEatingAgents(agents);
+        double nb_subbly_eaten;
+        if (eating_agent_nearby < 2) {
+            nb_subbly_eaten = 0;
+        } else {
+            nb_subbly_eaten = 1;
+        }
+        double nutritive_value = food.isEaten(nb_subbly_eaten, current_time);
         this.modifyEnergyLevel(nutritive_value);
     }
 
@@ -243,7 +251,7 @@ public class Agent extends Creature{
     public Agent reproduce(Agent other_parent) {
         Agent child = null;
         ArrayList<int[]> genotype = this.genotype.getChildCoupleChildrenGenotype(this.getGenotype(), other_parent.getGenotype(), mutation_probability);
-        child = new Agent(this.x, this.y, this.base_energy_level, this.energy_level_to_reproduce, genotype.get(0), genotype.get(1), this.class_type, this.speed, this.food_detection_range, this.agent_detection_range, this.mutation_probability, this.simulation_height, this.simulation_width);
+        child = new Agent(this.x, this.y, this.base_energy_level, this.energy_level_to_reproduce, this.reproduction_cost, genotype.get(0), genotype.get(1), this.class_type, this.speed, this.food_detection_range, this.agent_detection_range, this.mutation_probability, this.simulation_height, this.simulation_width);
         return child;
     }
 

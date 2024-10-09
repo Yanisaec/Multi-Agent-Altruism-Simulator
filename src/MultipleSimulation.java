@@ -1,4 +1,5 @@
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.chart.LineChart;
@@ -8,9 +9,14 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javax.imageio.ImageIO;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.image.WritableImage;
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.File;
+
 import java.util.ArrayList;
 
 import com.google.gson.Gson;
@@ -24,12 +30,15 @@ public class MultipleSimulation extends Application {
     private XYChart.Series<Number, Number> spreadProbabilitySeries;  // For average spread probability chart data
     private XYChart.Series<Number, Number> simulationsRunningSeries;  // For simulations running chart data
     private XYChart.Series<Number, Number> numberAgentsSeries; 
+    private LineChart<Number, Number> spreadProbabilityChart;
+    private LineChart<Number, Number> simulationsRunningChart;
+    private LineChart<Number, Number> numberAgentsChart;
 
     @Override
     public void start(Stage stage) {
         config = loadConfig();
-        height = 1000;
-        width = 1000;
+        height = 2000;
+        width = 2000;
         average_part_of_altruists_across_sims = 0;
         
         // Initialize simulations
@@ -47,7 +56,7 @@ public class MultipleSimulation extends Application {
         xAxis1.setLabel("Iteration");
         yAxis1.setLabel("Part of Altruists");
 
-        LineChart<Number, Number> spreadProbabilityChart = new LineChart<>(xAxis1, yAxis1);
+        spreadProbabilityChart = new LineChart<>(xAxis1, yAxis1);
         spreadProbabilityChart.setTitle("Part of Altruists Across Simulations");
         spreadProbabilityChart.setVerticalGridLinesVisible(false);
 
@@ -62,7 +71,7 @@ public class MultipleSimulation extends Application {
         xAxis2.setLabel("Iteration");
         yAxis2.setLabel("Number of Simulations Running");
 
-        LineChart<Number, Number> simulationsRunningChart = new LineChart<>(xAxis2, yAxis2);
+        simulationsRunningChart = new LineChart<>(xAxis2, yAxis2);
         simulationsRunningChart.setTitle("Number of Simulations Still Running");
         simulationsRunningChart.setVerticalGridLinesVisible(false);
 
@@ -76,7 +85,7 @@ public class MultipleSimulation extends Application {
         xAxis3.setLabel("Iteration");
         yAxis3.setLabel("Average Number of Agents Across Simulations");
 
-        LineChart<Number, Number> numberAgentsChart = new LineChart<>(xAxis3, yAxis3);
+        numberAgentsChart = new LineChart<>(xAxis3, yAxis3);
         numberAgentsChart.setTitle("Average Number of Agents Across Simulations");
         numberAgentsChart.setVerticalGridLinesVisible(false);
 
@@ -113,10 +122,20 @@ public class MultipleSimulation extends Application {
 
         // Run the simulation and update the charts
         new Thread(this::run).start();
+
+        // Save charts after the simulation ends (this could be triggered elsewhere as needed)
+        new Thread(() -> {
+            try {
+                Thread.sleep(5000);  // Wait for some time to ensure the charts are populated
+                saveChartsAsPng();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 
     private void run() {
-        for (int i = 0; i < 10000000; i++) {
+        for (int i = 0; i < 1000000; i++) {
             average_part_of_altruists_across_sims = 0;
             double average_number_of_agents = 0;
             ArrayList<Simulation> simulations_to_remove = new ArrayList<>();
@@ -153,7 +172,7 @@ public class MultipleSimulation extends Application {
             final double currentAveragePartAltruists = average_part_of_altruists_across_sims;
             final double currentSimulationsRunning = number_of_simulations;
             final double currentAverageNumberAgents = average_number_of_agents;
-            if (i % 1000 == 0) {
+            if (i % 1000 == 0 && number_of_simulations != 0) {
                 javafx.application.Platform.runLater(() -> {
                     spreadProbabilitySeries.getData().add(new XYChart.Data<>(iteration, currentAveragePartAltruists));
                     simulationsRunningSeries.getData().add(new XYChart.Data<>(iteration, currentSimulationsRunning));
@@ -191,6 +210,28 @@ public class MultipleSimulation extends Application {
 
         return config;
     }
+
+    public void saveChartAsPng(LineChart<Number, Number> chart, String path) {
+    // Ensure this runs on the JavaFX application thread
+    Platform.runLater(() -> {
+        WritableImage image = chart.snapshot(null, null);
+        File file = new File(path);
+
+        try {
+            ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", file);
+            System.out.println("Chart saved to: " + file.getAbsolutePath());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    });
+}
+    // Save all charts at once
+    private void saveChartsAsPng() {
+        saveChartAsPng(spreadProbabilityChart, "spread_probability_chart.png");
+        saveChartAsPng(simulationsRunningChart, "simulations_running_chart.png");
+        saveChartAsPng(numberAgentsChart, "number_agents_chart.png");
+    }
+    
 
     public static void main(String[] args) {
         launch(args);  // Launches the JavaFX application

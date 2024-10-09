@@ -89,7 +89,7 @@ public class SimulationApp extends Application {
     private void initializeSimulation() {
         for (int i = 0; i < config.getNumberOfAltruisticAgents(); i++) {
             simulation.addAltruisticAgent();
-        }       
+        }        
         for (int i = 0; i < config.getNumberOfEgoisticAgents(); i++) {
             simulation.addEgoisticAgent();
         }        
