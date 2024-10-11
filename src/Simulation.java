@@ -4,6 +4,7 @@ import java.util.Random;
 
 public class Simulation {
     private ArrayList<Agent> aliveAgents;
+    private ArrayList<Predator> predators;
     private ArrayList<Food> foods;
     private ArrayList<Pheromone> pheromones;
     private int currentTime;
@@ -16,6 +17,7 @@ public class Simulation {
         this.aliveAgents = new ArrayList<>();
         this.foods = new ArrayList<>();
         this.pheromones = new ArrayList<>();
+        this.predators = new ArrayList<>();
         this.currentTime = 0;
         this.simulation_height = height;
         this.simulation_width = width;
@@ -27,6 +29,14 @@ public class Simulation {
         List<Agent> agentsToRemove = new ArrayList<>();
         List<Pheromone> pheromonesToAdd = new ArrayList<>();
         List<Pheromone> pheromonesToRemove = new ArrayList<>();
+
+        for (Predator predator : predators) {
+            predator.updateDirectionAndMove(aliveAgents);
+            Agent potential_prey = predator.checkForPreyToEatAndEat(aliveAgents);
+            if (potential_prey != null) {
+                this.aliveAgents.remove(potential_prey);
+            }
+        }
 
         for (Agent agent : aliveAgents) {
             agent.updateReproductiveStatus();
@@ -47,15 +57,10 @@ public class Simulation {
                 agentsToRemove.add(agent);
             }
 
-            // Agent potential_child = agent.reproduce(config.getEnergyLevelToReproduce(), config.getReproductionCost(), config.getMutationProbability());
-            // if (!(potential_child == null)) {
-            //     agentsToAdd.add(potential_child);
-            // }
             if (agent.isEating()) {
                 if (agent.spreadPheromone(currentTime, pheromones)) {
                     Pheromone new_pheromone = new Pheromone(agent.getX(), agent.getY(), config.getPheromoneLifeSpan(), config.getPheromoneRadius(), this.simulation_height, this.simulation_width);
                     pheromonesToAdd.add(new_pheromone);
-                    // agent.updateLastPheromone(currentTime);
                     agent.modifyEnergyLevel(-config.getPheromoneEnergyCost());
                 }
             }
@@ -95,6 +100,14 @@ public class Simulation {
         incrementTime();
     }
 
+    public void addPredator(double x, double y, double energyLevel, String classType, double movingSpeed, double prey_detection_range, double prey_eating_range, double height, double width) {
+        this.predators.add(new Predator(x, y, energyLevel, classType, movingSpeed, prey_detection_range, prey_eating_range, height, width));
+    }
+
+    public void addPredatorPredator(Predator predator) {
+        this.predators.add(predator);
+    }
+
     public void addAgent(double x, double y, double energy, double energy_to_reproduce, double reproduction_cost, Genotype genotype, String class_type, double moving_speed, double food_detection_range, double agent_detection_range) {
         this.aliveAgents.add(new Agent(x, y, energy, energy_to_reproduce, reproduction_cost, genotype, class_type, moving_speed, food_detection_range, agent_detection_range, config.getMutationProbability(), simulation_height, simulation_width));
     }
@@ -132,6 +145,10 @@ public class Simulation {
         Gene phero_gene = new Gene(all1, all2);
         Genotype genotype = new Genotype(phero_gene);
         addAgent(Math.random()*simulation_width, Math.random()*simulation_height, config.getAgentBaseEnergyLevel(), config.getEnergyLevelToReproduce(), config.getReproductionCost(), genotype, "Agent1", config.getMovingSpeed(), config.getFoodDetectionRange(), config.getAgentDetectionRange());
+    }
+
+    public void addRandomPredator() {
+        addPredator(Math.random()*simulation_width, Math.random()*simulation_height, 1000, "Predator", config.getPredatorSpeed(), config.getPredatorPreyDetectionRange(), config.getPredatorPreyEatingRange(), simulation_height, simulation_width);
     }
     
     public void addAltruisticAgent() {
@@ -178,6 +195,10 @@ public class Simulation {
 
     public ArrayList<Pheromone> getPheromones() {
         return this.pheromones;
+    }
+
+    public ArrayList<Predator> getPredators() {
+        return this.predators;
     }
 
     public int getCurrentTime() {

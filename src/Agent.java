@@ -81,21 +81,6 @@ public class Agent extends Creature{
         return potential_child;
     }
 
-    public void changeDirection(double[] new_direction) {
-        double direction_norm = this.getDirectionNorm(this.direction);
-        new_direction[0] = new_direction[0]*direction_norm;
-        new_direction[1] = new_direction[1]*direction_norm;
-        this.direction = new_direction;
-    }
-
-    public void updateRandomDirection() {
-        double[] random_direction = this.getRandomDirection();
-        double cosine_similarity = this.cosineSimilarity(this.direction, random_direction) * 0.5;
-        this.direction[0] += random_direction[0]*cosine_similarity;
-        this.direction[1] += random_direction[1]*cosine_similarity;
-        this.direction = this.normDirection(this.direction);
-    }
-
     public HashMap<Agent, Double> getNearbyAgents(ArrayList<Agent> agents) {
         HashMap<Agent, Double> agentHashMap = new HashMap<>();
         for (int i = 0; i < agents.size(); i++) {
@@ -136,14 +121,14 @@ public class Agent extends Creature{
     public Agent findNearestAgent(ArrayList<Agent> agents) {
         HashMap<Agent, Double> agentHashMap = this.getNearbyAgents(agents);
         double min_distance = Double.POSITIVE_INFINITY;
-        Agent best_agent = null;
+        Agent nearest_agent = null;
         for (Agent agent : agentHashMap.keySet()) {
             if (agentHashMap.get(agent) < min_distance && agent.canReproduce()) {
-                best_agent = agent;
+                nearest_agent = agent;
                 min_distance = agentHashMap.get(agent);
             }
         }
-        return best_agent;
+        return nearest_agent;
     }
 
     public double getNumberOfNearbyEatingAgents(ArrayList<Agent> agents) {

@@ -99,6 +99,7 @@ public class SimulationApp extends Application {
         for (int i = 0; i < config.getNumberOfFoodSpots(); i++) {
             simulation.addRandomFood();
         }
+        simulation.addRandomPredator();
     }
 
     private void drawElements(GraphicsContext gc) {
@@ -166,6 +167,21 @@ public class SimulationApp extends Application {
             gc.setLineWidth(1);
             gc.strokeText(String.format("%.0f", energy), agentX, agentY - 5); // Display energy above the agent
         } 
+
+        double predator_size = 12;
+        List<Predator> predators = simulation.getPredators();
+        for (Predator predator : predators) {
+            double predatorX = predator.getX();
+            double predatorY = predator.getY();
+            double prey_detection_range = predator.getPreyDetectionRange();
+            double prey_eating_range = predator.getPreyEatingRange();
+            double kill_count = predator.getKillCount();
+            gc.setFill(Color.BLACK);
+            gc.fillRect(predatorX - (predator_size / 2), predatorY - (predator_size / 2), predator_size, predator_size);
+            gc.strokeOval(predatorX - (prey_detection_range / 2), predatorY - (prey_detection_range / 2), prey_detection_range, prey_detection_range);
+            gc.strokeOval(predatorX - (prey_eating_range / 2), predatorY - (prey_eating_range / 2), prey_eating_range, prey_eating_range);
+            gc.strokeText(String.format("%.0f", kill_count), predatorX - 3, predatorY - 10);
+        }
     }
 
     private Config loadConfig() {

@@ -1,7 +1,7 @@
 {
     "number_of_altruistic_agents": 0,
     "number_of_egoistic_agents": 0,
-    "number_of_random_agents": 100,
+    "number_of_random_agents": 25,
     "agent_base_energy_level": 1000,
     "moving_speed": 0.6,
     "food_detection_range": 10,
@@ -10,6 +10,10 @@
     "reproduction_cost": 300,
     "allele_length": 10,
     "mutation_probability": 0.01,
+
+    "prey_detection_range": 50,
+    "prey_eating_range": 5,
+    "predator_speed": 0.7,
 
     "number_of_food_spots": 15,
     "food_nutritive_value": 1,

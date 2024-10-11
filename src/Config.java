@@ -17,7 +17,9 @@ public class Config {
     private double pheromone_energy_cost;
     private double mutation_probability;
     private int allele_length;
-
+    private double prey_detection_range;
+    private double prey_eating_range;
+    private double predator_speed;
 
     public int getNumberOfAltruisticAgents() { return number_of_altruistic_agents; }
     public int getNumberOfEgoisticAgents() { return number_of_egoistic_agents; }
@@ -37,4 +39,7 @@ public class Config {
     public double getPheromoneEnergyCost() { return pheromone_energy_cost; }
     public double getMutationProbability() { return mutation_probability; }
     public int getAlleleLength() { return allele_length; }
+    public double getPredatorSpeed() { return predator_speed; }
+    public double getPredatorPreyDetectionRange() { return prey_detection_range; }
+    public double getPredatorPreyEatingRange() { return prey_eating_range; }
 }
