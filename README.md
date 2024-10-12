@@ -4,12 +4,7 @@ The objective is to create a multi agent simulation with genome differenciation 
 
 ### Tasks
 
-- [X] Add predator
-- [X] Add repelant pheromone
-- [ ] Make graph visualization/saving better (save config file alongside graphs)
-- [X] Add reproduction for predators
-- [X] Add an attribute to food to determinate the number of agents required to eat it 
-- [ ] Change things so that the repelant gene is usefull
+- [ ] Change things so that the repelant gene has an advantage or a disadvantage
 
 ### Contribution
 

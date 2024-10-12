@@ -13,6 +13,12 @@ import javax.imageio.ImageIO;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.WritableImage;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.File;
@@ -38,6 +44,7 @@ public class MultipleSimulation extends Application {
     private LineChart<Number, Number> numberAgentsChart;
     private LineChart<Number, Number> repelantProbaChart;
     private LineChart<Number, Number> numberPredatorsChart;
+    private static final int NUMBER_ITERATIONS = 400000;
 
     @Override
     public void start(Stage stage) {
@@ -164,7 +171,17 @@ public class MultipleSimulation extends Application {
     }
 
     private void run() {
-        for (int i = 0; i < 500000; i++) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
+        String folderName = "outputs/" + LocalDateTime.now().format(formatter);
+        File directory = new File(folderName);
+        directory.mkdirs();
+        try {
+            Files.copy(Paths.get("config.json"), Paths.get(folderName + "/config.json"), StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+            
+        for (int i = 0; i < NUMBER_ITERATIONS; i++) {
             average_part_of_altruists_across_sims = 0;
             average_part_of_repelers_across_sims = 0;
             double average_number_of_agents = 0;
@@ -209,7 +226,7 @@ public class MultipleSimulation extends Application {
             final double currentSimulationsRunning = number_of_simulations;
             final double currentAverageNumberAgents = average_number_of_agents;
             final double currentAverageNumberPredators = average_number_of_predators;
-            if (i % 1000 == 0 && number_of_simulations != 0) {
+            if ((i % 2500 == 0 || i == (NUMBER_ITERATIONS - 1)) && number_of_simulations != 0) {
                 javafx.application.Platform.runLater(() -> {
                     spreadProbabilitySeries.getData().add(new XYChart.Data<>(iteration, currentAveragePartAltruists));
                     simulationsRunningSeries.getData().add(new XYChart.Data<>(iteration, currentSimulationsRunning));
@@ -218,10 +235,15 @@ public class MultipleSimulation extends Application {
                     repelantProbaSeries.getData().add(new XYChart.Data<>(iteration, currentAveragePartRepelers));
                 });
             }
+            if ((i % 25000 == 0 || i == (NUMBER_ITERATIONS - 1)) && number_of_simulations != 0) {
+                Platform.runLater(() -> {
+                    saveChartsAsPng(folderName);  // Overwrites the existing charts
+                });
+            }
         }
 
         // After the simulation is complete, save the charts
-        Platform.runLater(this::saveChartsAsPng);
+        Platform.runLater(() -> saveChartsAsPng(folderName));    
     }
 
     private Simulation initializeSimulation(Simulation simulation) {
@@ -264,18 +286,18 @@ public class MultipleSimulation extends Application {
 
         try {
             ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", file);
-            System.out.println("Chart saved to: " + file.getAbsolutePath());
+            // System.out.println("Chart saved to: " + file.getAbsolutePath());
         } catch (IOException e) {
             e.printStackTrace();
         }
     });
 }
-    // Save all charts at once
-    private void saveChartsAsPng() {
-        saveChartAsPng(spreadProbabilityChart, "spread_probability_chart.png");
-        saveChartAsPng(simulationsRunningChart, "simulations_running_chart.png");
-        saveChartAsPng(numberAgentsChart, "number_agents_chart.png");
-        saveChartAsPng(numberPredatorsChart, "number_predators_chart.png");
+
+    private void saveChartsAsPng(String folderName) {
+        saveChartAsPng(spreadProbabilityChart, folderName + "/spread_probability_chart.png");
+        saveChartAsPng(simulationsRunningChart, folderName + "/simulations_running_chart.png");
+        saveChartAsPng(numberAgentsChart, folderName + "/number_agents_chart.png");
+        saveChartAsPng(numberPredatorsChart, folderName + "/number_predators_chart.png");
     }
     
 
