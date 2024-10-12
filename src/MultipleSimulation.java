@@ -294,7 +294,7 @@ public class MultipleSimulation extends Application {
 }
 
     private void saveChartsAsPng(String folderName) {
-        saveChartAsPng(spreadProbabilityChart, folderName + "/spread_probability_chart.png");
+        saveChartAsPng(spreadProbabilityChart, folderName + "/part_of_altruists_chart.png");
         saveChartAsPng(simulationsRunningChart, folderName + "/simulations_running_chart.png");
         saveChartAsPng(numberAgentsChart, folderName + "/number_agents_chart.png");
         saveChartAsPng(numberPredatorsChart, folderName + "/number_predators_chart.png");

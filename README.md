@@ -4,7 +4,7 @@ The objective is to create a multi agent simulation with genome differenciation 
 
 ### Tasks
 
-- [ ] Change things so that the repelant gene has an advantage or a disadvantage
+- [ ] Find out how to make repelants relevant
 
 ### Contribution
 
