@@ -16,6 +16,7 @@ public class Agent extends Creature{
     private double reproduction_cost;
     private boolean can_reproduce;
     private double mutation_probability;
+    private static final double FOOD_EATING_THRESHOLD = 5.0;
     
     public Agent(double x, double y, double energy_level, double energy_to_reproduce, double reproduction_cost, Genotype genotype, String class_type, double speed, double food_detection_range, double agent_detection_range, double predator_detection_range, double mutation_probability, double height, double width) {
         super(x, y, energy_level, class_type, speed, height, width);
@@ -53,7 +54,7 @@ public class Agent extends Creature{
         Food nearest_food = findNearestFoodSource(food_sources);
         if (!(nearest_food == null)) {
             // There is food nearby
-            if (this.distanceToElement(nearest_food) < 5) {
+            if (this.distanceToElement(nearest_food) < FOOD_EATING_THRESHOLD) {
                 // The agent is on the food
                 this.is_eating = true;
                 this.eatFood(nearest_food, simulation_time, agents);
@@ -72,8 +73,8 @@ public class Agent extends Creature{
                 potential_child = reproduce(nearest_agent);
                 this.modifyEnergyLevel(-reproduction_cost);
                 nearest_agent.modifyEnergyLevel(-reproduction_cost);
-                this.hasReproduced();
-                nearest_agent.hasReproduced();
+                this.resetReproductionStatus();
+                nearest_agent.resetReproductionStatus();
                 return potential_child;
             } else if (!(nearest_agent == null)) { // agent not close enough to reproduce
                 double[] direction_toward_agent = this.getDirectionNormedToward(this.direction, nearest_agent);
@@ -98,11 +99,11 @@ public class Agent extends Creature{
 
     public HashMap<Agent, Double> getNearbyAgents(ArrayList<Agent> agents) {
         HashMap<Agent, Double> agentHashMap = new HashMap<>();
-        for (int i = 0; i < agents.size(); i++) {
-            if (!this.equals(agents.get(i))) {
-                double distance = this.distanceToElement(agents.get(i));
+        for (Agent agent : agents) {
+            if (!this.equals(agent)) {
+                double distance = this.distanceToElement(agent);
                 if (distance < this.agent_detection_range) {
-                    agentHashMap.put(agents.get(i), distance);
+                    agentHashMap.put(agent, distance);
                 }
             }
         }
@@ -111,10 +112,10 @@ public class Agent extends Creature{
 
     public HashMap<Predator, Double> getNearbyPredator(ArrayList<Predator> predators) {
         HashMap<Predator, Double> predatorHashMap = new HashMap<>();
-        for (int i = 0; i < predators.size(); i++) {
-            double distance = this.distanceToElement(predators.get(i));
+        for (Predator predator : predators) {
+            double distance = this.distanceToElement(predator);
             if (distance < this.predator_detection_range) {
-                predatorHashMap.put(predators.get(i), distance);
+                predatorHashMap.put(predator, distance);
             }
         }
         return predatorHashMap;
@@ -122,8 +123,7 @@ public class Agent extends Creature{
     
     public HashMap<Food, Double> getNearbyFoods(ArrayList<Food> food_sources) {
         HashMap<Food, Double> foodHashMap = new HashMap<>();
-        for (int i = 0; i < food_sources.size(); i++) {
-            Food food = food_sources.get(i);
+        for (Food food : food_sources) {
             double distance = this.distanceToElement(food);
             if ((distance < this.food_detection_range) && !food.isEmpty()) {
                 foodHashMap.put(food, distance);
@@ -134,8 +134,7 @@ public class Agent extends Creature{
 
     public HashMap<Pheromone, Double> getNearbyPheromones(ArrayList<Pheromone> pheromones) {
         HashMap<Pheromone, Double> pheromoneHashMap = new HashMap<>();
-        for (int i = 0; i < pheromones.size(); i++) {
-            Pheromone pheromone = pheromones.get(i);
+        for (Pheromone pheromone : pheromones) {
             double distance = this.distanceToElement(pheromone);
             if (distance < pheromone.getRadiusEffect()) {
                 pheromoneHashMap.put(pheromone, distance);
@@ -212,7 +211,7 @@ public class Agent extends Creature{
     public void eatFood(Food food, double current_time, ArrayList<Agent> agents) {
         double eating_agent_nearby = getNumberOfNearbyEatingAgents(agents);
         double nb_subbly_eaten;
-        if (eating_agent_nearby < 1) {
+        if (eating_agent_nearby < food.getNbAgentsRequiredToEat()) {
             nb_subbly_eaten = 0;
         } else {
             nb_subbly_eaten = 1;
@@ -250,10 +249,12 @@ public class Agent extends Creature{
     }
 
     public void updateReproductiveStatus() {
-        if (this.energy_level > energy_level_to_reproduce) {
-            this.can_reproduce = true;
-        } else {
-            this.can_reproduce = false;
+        if (!can_reproduce) {
+            if (this.energy_level > energy_level_to_reproduce) {
+                this.can_reproduce = true;
+            } else {
+                this.can_reproduce = false;
+            }
         }
     }
 
@@ -268,7 +269,7 @@ public class Agent extends Creature{
         return false;
     }
 
-    public void hasReproduced() {
+    public void resetReproductionStatus() {
         this.can_reproduce = false;
     }
 

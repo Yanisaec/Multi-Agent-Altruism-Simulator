@@ -1,3 +1,5 @@
+import java.util.Random;
+
 public class Food extends Element{
     private double nutritive_value;
     private double regeneration_pace;
@@ -5,6 +7,9 @@ public class Food extends Element{
     private double current_supply;
     private boolean is_empty;
     private double when_became_empty;
+    private Random random = new Random();
+    private int number_of_agents_required_to_be_eaten;
+    private static final int MAX_NUMBER_AGENTS_REQUIRED_TO_BE_EATEN = 3;
 
     public Food(double x, double y, double nutritive_value, double regeneration_pace, double max_supply, double height, double width) {
         super(x, y, height, width);
@@ -14,6 +19,7 @@ public class Food extends Element{
         this.current_supply = max_supply;
         this.is_empty = false;
         this.when_became_empty = 0;
+        this.number_of_agents_required_to_be_eaten = random.nextInt(MAX_NUMBER_AGENTS_REQUIRED_TO_BE_EATEN);
     }
 
     public double isEaten(double nbSupplyEaten, double current_time) {
@@ -58,5 +64,9 @@ public class Food extends Element{
 
     public double getWhenEmpty() {
         return this.when_became_empty;
+    }
+
+    public double getNbAgentsRequiredToEat() {
+        return this.number_of_agents_required_to_be_eaten;
     }
 }

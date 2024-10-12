@@ -17,8 +17,8 @@ import java.util.List;
 public class SimulationApp extends Application {
     private Simulation simulation;
     private boolean isPaused = false;
-    private double simulation_height = 600;
-    private double simulation_width = 1000;
+    private double simulation_height = 700;
+    private double simulation_width = 1400;
     private int iterations = 0;
     private double iterations_per_second = -1;
     private long start_time = System.nanoTime();
@@ -99,7 +99,9 @@ public class SimulationApp extends Application {
         for (int i = 0; i < config.getNumberOfFoodSpots(); i++) {
             simulation.addRandomFood();
         }
-        simulation.addRandomPredator();
+        for (int i = 0; i < config.getNumberOfPredators(); i++) {
+            simulation.addRandomPredator();
+        }
     }
 
     private void drawElements(GraphicsContext gc) {
@@ -119,6 +121,7 @@ public class SimulationApp extends Application {
             // gc.drawImage(foodSprite, food.getX(), food.getY(), 10, 10); // Draw food sprite at (x, y) with a size of 10x10
             gc.fillRect(foodX, foodY, 5, 5);
             gc.strokeText(String.format("%.0f", food.getCurrentSupply()), foodX - 5, foodY + 15); // Display energy above the agent
+            gc.strokeText(String.format("%.0f", food.getNbAgentsRequiredToEat()), foodX - 5, foodY); // Display energy above the agent
         }
 
         List<Pheromone> pheromones = simulation.getPheromones();

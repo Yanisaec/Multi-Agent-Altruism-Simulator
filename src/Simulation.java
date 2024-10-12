@@ -29,6 +29,7 @@ public class Simulation {
     public void updateSimulation() {
         List<Agent> agentsToAdd = new ArrayList<>();
         List<Agent> agentsToRemove = new ArrayList<>();
+        List<Predator> predators_to_add = new ArrayList<>();
         List<Predator> predatorsToRemove = new ArrayList<>();
         List<Pheromone> pheromonesToAdd = new ArrayList<>();
         List<Pheromone> pheromonesToRemove = new ArrayList<>();       
@@ -47,11 +48,22 @@ public class Simulation {
         }
 
         for (Predator predator : predators) {
-            predator.updateDirectionAndMove(aliveAgents);
+            predator.updateReproductiveStatus();
+        }
+
+        for (Predator predator : predators) {
+            Predator potential_child = predator.updateDirectionAndMove(aliveAgents, predators);
+            if (potential_child != null) {
+                predators_to_add.add(potential_child);
+            }
             Agent potential_prey = predator.checkForPreyToEatAndEat(aliveAgents);
             if (potential_prey != null) {
                 this.aliveAgents.remove(potential_prey);
             }
+        }
+
+        for (Predator new_predator : predators_to_add) {
+            predators.add(new_predator);
         }
 
         for (Agent agent : aliveAgents) {
@@ -137,8 +149,8 @@ public class Simulation {
         incrementTime();
     }
 
-    public void addPredator(double x, double y, double energyLevel, String classType, double movingSpeed, double prey_detection_range, double prey_eating_range, double energy_level_to_look_for_prey, double agent_nutritive_value, double height, double width) {
-        this.predators.add(new Predator(x, y, energyLevel, classType, movingSpeed, prey_detection_range, prey_eating_range, energy_level_to_look_for_prey, agent_nutritive_value, height, width));
+    public void addPredator(double x, double y, double energyLevel, double predator_energy_level_to_reproduce, double predator_reproduction_cost, String classType, double movingSpeed, double predator_detection_range, double prey_detection_range, double prey_eating_range, double energy_level_to_look_for_prey, double agent_nutritive_value, double height, double width) {
+        this.predators.add(new Predator(x, y, energyLevel, predator_energy_level_to_reproduce, predator_reproduction_cost, classType, movingSpeed, predator_detection_range, prey_detection_range, prey_eating_range, energy_level_to_look_for_prey, agent_nutritive_value, height, width));
     }
 
     public void addPredatorPredator(Predator predator) {
@@ -178,7 +190,7 @@ public class Simulation {
     }
     
     public void addRandomPredator() {
-        addPredator(Math.random()*simulation_width, Math.random()*simulation_height, config.getPredatorBaseEnergyLevel(), "Predator", config.getPredatorSpeed(), config.getPredatorPreyDetectionRange(), config.getPredatorPreyEatingRange(), config.getPredatorEnergyLevelToLookForPrey(), config.getAgentNutritiveValue(), simulation_height, simulation_width);
+        addPredator(Math.random()*simulation_width, Math.random()*simulation_height, config.getPredatorBaseEnergyLevel(), config.getPredatorEnergyLevelToReproduce(), config.getPredatorReproductionCost(), "Predator", config.getPredatorSpeed(), config.getOtherPredatorDetectionRange(), config.getPredatorPreyDetectionRange(), config.getPredatorPreyEatingRange(), config.getPredatorEnergyLevelToLookForPrey(), config.getAgentNutritiveValue(), simulation_height, simulation_width);
     }
     
     public void addRandomAgent() {
@@ -186,7 +198,7 @@ public class Simulation {
         Gene phero_gene = getRandomGene(allele_length);
         Gene repelant_gene = getRandomGene(allele_length);
         Genotype genotype = new Genotype(phero_gene, repelant_gene);
-        addAgent(Math.random()*simulation_width, Math.random()*simulation_height, config.getAgentBaseEnergyLevel(), config.getEnergyLevelToReproduce(), config.getReproductionCost(), genotype, "Agent1", config.getMovingSpeed(), config.getFoodDetectionRange(), config.getAgentDetectionRange(), config.getAgentPredatorDetectionRange());
+        addAgent(Math.random()*simulation_width, Math.random()*simulation_height, config.getAgentBaseEnergyLevel(), config.getAgentEnergyLevelToReproduce(), config.getReproductionCost(), genotype, "Agent1", config.getMovingSpeed(), config.getFoodDetectionRange(), config.getAgentDetectionRange(), config.getAgentPredatorDetectionRange());
     }
 
     public void addAltruisticAgent() {
@@ -194,7 +206,7 @@ public class Simulation {
         Gene phero_gene = getConstantGene(allele_length, 1);
         Gene repelant_gene = getConstantGene(allele_length, 1);
         Genotype genotype = new Genotype(phero_gene, repelant_gene);
-        addAgent(Math.random()*simulation_width, Math.random()*simulation_height, config.getAgentBaseEnergyLevel(), config.getEnergyLevelToReproduce(), config.getReproductionCost(), genotype, "Agent1", config.getMovingSpeed(), config.getFoodDetectionRange(), config.getAgentDetectionRange(), config.getAgentPredatorDetectionRange());
+        addAgent(Math.random()*simulation_width, Math.random()*simulation_height, config.getAgentBaseEnergyLevel(), config.getAgentEnergyLevelToReproduce(), config.getReproductionCost(), genotype, "Agent1", config.getMovingSpeed(), config.getFoodDetectionRange(), config.getAgentDetectionRange(), config.getAgentPredatorDetectionRange());
     }
     
     public void addEgoisticAgent() {
@@ -202,7 +214,7 @@ public class Simulation {
         Gene phero_gene = getConstantGene(allele_length, 0);
         Gene repelant_gene = getConstantGene(allele_length, 0);
         Genotype genotype = new Genotype(phero_gene, repelant_gene);
-        addAgent(Math.random()*simulation_width, Math.random()*simulation_height, config.getAgentBaseEnergyLevel(), config.getEnergyLevelToReproduce(), config.getReproductionCost(), genotype, "Agent1", config.getMovingSpeed(), config.getFoodDetectionRange(), config.getAgentDetectionRange(), config.getAgentPredatorDetectionRange());
+        addAgent(Math.random()*simulation_width, Math.random()*simulation_height, config.getAgentBaseEnergyLevel(), config.getAgentEnergyLevelToReproduce(), config.getReproductionCost(), genotype, "Agent1", config.getMovingSpeed(), config.getFoodDetectionRange(), config.getAgentDetectionRange(), config.getAgentPredatorDetectionRange());
     }
 
     public void addRandomFood() {

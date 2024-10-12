@@ -41,17 +41,17 @@ public class MultipleSimulation extends Application {
 
     @Override
     public void start(Stage stage) {
-        stage.setWidth(1200);
-        stage.setHeight(600);
+        stage.setWidth(1400);
+        stage.setHeight(700);
         config = loadConfig();
-        height = 3000;
-        width = 3000;
+        height = 5000;
+        width = 5000;
         average_part_of_altruists_across_sims = 0;
         average_part_of_repelers_across_sims = 0;
         
         // Initialize simulations
         simulations = new ArrayList<>();
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 50; i++) {
             Simulation new_sim = new Simulation(config, height, width);
             new_sim = initializeSimulation(new_sim);
             simulations.add(new_sim);
@@ -74,8 +74,9 @@ public class MultipleSimulation extends Application {
 
         // Create chart for Number of Simulations Running
         NumberAxis xAxis2 = new NumberAxis();
-        NumberAxis yAxis2 = new NumberAxis(0, 100, 1);
-        yAxis2.setAutoRanging(false);
+        NumberAxis yAxis2 = new NumberAxis();
+        // NumberAxis yAxis2 = new NumberAxis(0, 100, 1);
+        // yAxis2.setAutoRanging(false);
         xAxis2.setLabel("Iteration");
         yAxis2.setLabel("Number of Simulations Running");
 
@@ -163,7 +164,7 @@ public class MultipleSimulation extends Application {
     }
 
     private void run() {
-        for (int i = 0; i < 1000000; i++) {
+        for (int i = 0; i < 500000; i++) {
             average_part_of_altruists_across_sims = 0;
             average_part_of_repelers_across_sims = 0;
             double average_number_of_agents = 0;
@@ -274,6 +275,7 @@ public class MultipleSimulation extends Application {
         saveChartAsPng(spreadProbabilityChart, "spread_probability_chart.png");
         saveChartAsPng(simulationsRunningChart, "simulations_running_chart.png");
         saveChartAsPng(numberAgentsChart, "number_agents_chart.png");
+        saveChartAsPng(numberPredatorsChart, "number_predators_chart.png");
     }
     
 
