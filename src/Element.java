@@ -45,6 +45,20 @@ public class Element {
         return direction;
     }
 
+    public double[] getDirectionNormedOpposite(double[] old_direction, Element element) {
+        double direction_norm;
+        double[] direction = new double[2];
+        direction[0] = -(element.x - this.x);
+        direction[1] = -(element.y - this.y);
+        if (direction[0] == 0 && direction[1] == 0) {
+            return getRandomDirection();
+        }
+        direction_norm = Math.sqrt(Math.pow(direction[0],2) + Math.pow(direction[1],2)) / 2;
+        direction[0] /= direction_norm;
+        direction[1] /= direction_norm;
+        return direction;
+    }
+
     public double[] getRandomDirectionCanva(double height, double width) {
         double[] base_direction = new double[]{0,0};
         double random_x = Math.random()*width;

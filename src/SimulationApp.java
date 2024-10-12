@@ -122,13 +122,21 @@ public class SimulationApp extends Application {
         }
 
         List<Pheromone> pheromones = simulation.getPheromones();
-        gc.setFill(Color.GREEN);
         for (Pheromone pheromone : pheromones) {
             double pheromoneX = pheromone.getX();
             double pheromoneY = pheromone.getY();
             double size = pheromone.getRadiusEffect()*2;
             gc.setStroke(Color.PINK); 
             gc.strokeOval(pheromoneX - (size / 2), pheromoneY - (size / 2), size, size);
+        }
+
+        List<Repelant> repelants = simulation.getRepelants();
+        gc.setFill(Color.BEIGE);
+        for (Repelant repelant : repelants) {
+            double repelantX = repelant.getX();
+            double repelantY = repelant.getY();
+            double size = repelant.getRadiusEffect()*2;
+            gc.strokeOval(repelantX - (size / 2), repelantY - (size / 2), size, size);
         }
         
         List<Agent> agents = simulation.getAliveAgents();
@@ -137,13 +145,17 @@ public class SimulationApp extends Application {
         gc.setFill(Color.BLACK); // Set fill color for text
         gc.fillText("Number of agents: " + number_agents_string, 10, 20);
         
-        double average_spread_proba = simulation.getPartOfAltruists();
-        String average_spread_proba_string = String.format("%.2f", average_spread_proba);
-        gc.fillText("Average spread probability: " + average_spread_proba_string, 10, 40);
+        double part_of_altruists = simulation.getPartOfAltruists();
+        String part_of_altruists_string = String.format("%.2f", part_of_altruists);
+        gc.fillText("Average spread probability: " + part_of_altruists_string, 10, 40);        
+        
+        double part_of_repelers = simulation.getPartOfRepelers();
+        String part_of_repelers_string = String.format("%.2f", part_of_repelers);
+        gc.fillText("Average spread probability: " + part_of_repelers_string, 10, 60);
         
         double agentSize = 10;
         for (Agent agent : agents) {
-            if (agent.isAProducer()) {
+            if (agent.isAPheromoneProducer()) {
                 gc.setFill(Color.BLUE);
             } else {
                 gc.setFill(Color.RED);
@@ -176,11 +188,13 @@ public class SimulationApp extends Application {
             double prey_detection_range = predator.getPreyDetectionRange();
             double prey_eating_range = predator.getPreyEatingRange();
             double kill_count = predator.getKillCount();
+            double energy_level_predator = predator.getEnergyLevel();
             gc.setFill(Color.BLACK);
             gc.fillRect(predatorX - (predator_size / 2), predatorY - (predator_size / 2), predator_size, predator_size);
             gc.strokeOval(predatorX - (prey_detection_range / 2), predatorY - (prey_detection_range / 2), prey_detection_range, prey_detection_range);
             gc.strokeOval(predatorX - (prey_eating_range / 2), predatorY - (prey_eating_range / 2), prey_eating_range, prey_eating_range);
-            gc.strokeText(String.format("%.0f", kill_count), predatorX - 3, predatorY - 10);
+            gc.strokeText(String.format("%.0f", energy_level_predator), predatorX - 3, predatorY - 10);
+            // gc.strokeText(String.format("%.0f", kill_count), predatorX - 3, predatorY - 10);
         }
     }
 

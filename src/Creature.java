@@ -17,6 +17,10 @@ public class Creature extends Element {
     public void move(double dx, double dy) {
         this.x += dx;
         this.y += dy;
+        this.x = Math.max(this.x, 0);
+        this.y = Math.max(this.y, 0);
+        this.x = Math.min(this.x, simulation_width);
+        this.y = Math.min(this.y, simulation_height);
     }
 
     public void moveTowardDirection(double[] direction, double speed) {
@@ -26,13 +30,13 @@ public class Creature extends Element {
         this.move(dx, dy);
         double distance_to_vertical_sides = Math.min(this.x % this.simulation_width, (this.simulation_width-this.x) % this.simulation_width);
         double distance_to_horizontal_sides = Math.min(this.y % this.simulation_height, (this.simulation_height-this.y) % this.simulation_height);
-        if ((distance_to_horizontal_sides < 0))  {
-            this.direction[1] = -this.direction[1] * 2;
+        if ((distance_to_horizontal_sides <= 0))  {
+            this.direction[1] = -this.direction[1];
             // this.direction[0] = -this.direction[0] * 2;
         }
-        if ((distance_to_vertical_sides < 0))  {
+        if ((distance_to_vertical_sides <= 0))  {
             // this.direction[1] = -this.direction[1] * 2;
-            this.direction[0] = -this.direction[0] * 2;
+            this.direction[0] = -this.direction[0];
         } 
     }
 

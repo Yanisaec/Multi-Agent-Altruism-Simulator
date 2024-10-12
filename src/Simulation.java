@@ -7,6 +7,7 @@ public class Simulation {
     private ArrayList<Predator> predators;
     private ArrayList<Food> foods;
     private ArrayList<Pheromone> pheromones;
+    private ArrayList<Repelant> repelants;
     private int currentTime;
     private Random random = new Random();
     private double simulation_height;
@@ -18,6 +19,7 @@ public class Simulation {
         this.foods = new ArrayList<>();
         this.pheromones = new ArrayList<>();
         this.predators = new ArrayList<>();
+        this.repelants = new ArrayList<>();
         this.currentTime = 0;
         this.simulation_height = height;
         this.simulation_width = width;
@@ -27,8 +29,22 @@ public class Simulation {
     public void updateSimulation() {
         List<Agent> agentsToAdd = new ArrayList<>();
         List<Agent> agentsToRemove = new ArrayList<>();
+        List<Predator> predatorsToRemove = new ArrayList<>();
         List<Pheromone> pheromonesToAdd = new ArrayList<>();
-        List<Pheromone> pheromonesToRemove = new ArrayList<>();
+        List<Pheromone> pheromonesToRemove = new ArrayList<>();       
+        List<Repelant> repelantsToAdd = new ArrayList<>();
+        List<Repelant> repelantsToRemove = new ArrayList<>();
+
+        for (Predator predator : predators) {
+            boolean is_dead = predator.getOlder();
+            if (is_dead) {
+                predatorsToRemove.add(predator);
+            }
+        }
+
+        for (Predator predator : predatorsToRemove) {
+            predators.remove(predator);
+        }
 
         for (Predator predator : predators) {
             predator.updateDirectionAndMove(aliveAgents);
@@ -43,7 +59,7 @@ public class Simulation {
         }
 
         for (Agent agent : aliveAgents) {
-            Agent potential_child = agent.updateDirectionAndEat(aliveAgents, foods, pheromones, currentTime);
+            Agent potential_child = agent.updateDirectionAndEat(aliveAgents, foods, pheromones, predators, currentTime);
             if (!(potential_child == null)) {
                 agentsToAdd.add(potential_child);
             }
@@ -64,12 +80,25 @@ public class Simulation {
                     agent.modifyEnergyLevel(-config.getPheromoneEnergyCost());
                 }
             }
+
+            if (agent.isInDanger()) {
+                Repelant new_repelant = new Repelant(agent.getX(), agent.getY(), config.getRepelantLifespan(), config.getRepelantRadius(),simulation_height, simulation_width);
+                repelantsToAdd.add(new_repelant);
+                agent.modifyEnergyLevel(-config.getRepelantEnergyCost());
+            }
         }
 
         for (Pheromone pheromone : pheromones) {
             boolean is_done = pheromone.update();
             if (is_done) {
                 pheromonesToRemove.add(pheromone);
+            }
+        }
+
+        for (Repelant repelant : repelants) {
+            boolean is_done = repelant.update();
+            if (is_done) {
+                repelantsToRemove.add(repelant);
             }
         }
 
@@ -86,8 +115,16 @@ public class Simulation {
             addPheromonePheromone(new_pheromone);
         }
 
+        for (Repelant new_repelant : repelantsToAdd) {
+            addRepelantRepelant(new_repelant);
+        }
+
         for (Pheromone donePheromone : pheromonesToRemove) {
             removePheromone(donePheromone);
+        }
+
+        for (Repelant doneRepelant : repelantsToRemove) {
+            removeRepelant(doneRepelant);
         }
         
         for (Food food : foods) {
@@ -100,16 +137,16 @@ public class Simulation {
         incrementTime();
     }
 
-    public void addPredator(double x, double y, double energyLevel, String classType, double movingSpeed, double prey_detection_range, double prey_eating_range, double height, double width) {
-        this.predators.add(new Predator(x, y, energyLevel, classType, movingSpeed, prey_detection_range, prey_eating_range, height, width));
+    public void addPredator(double x, double y, double energyLevel, String classType, double movingSpeed, double prey_detection_range, double prey_eating_range, double energy_level_to_look_for_prey, double agent_nutritive_value, double height, double width) {
+        this.predators.add(new Predator(x, y, energyLevel, classType, movingSpeed, prey_detection_range, prey_eating_range, energy_level_to_look_for_prey, agent_nutritive_value, height, width));
     }
 
     public void addPredatorPredator(Predator predator) {
         this.predators.add(predator);
     }
 
-    public void addAgent(double x, double y, double energy, double energy_to_reproduce, double reproduction_cost, Genotype genotype, String class_type, double moving_speed, double food_detection_range, double agent_detection_range) {
-        this.aliveAgents.add(new Agent(x, y, energy, energy_to_reproduce, reproduction_cost, genotype, class_type, moving_speed, food_detection_range, agent_detection_range, config.getMutationProbability(), simulation_height, simulation_width));
+    public void addAgent(double x, double y, double energy, double energy_to_reproduce, double reproduction_cost, Genotype genotype, String class_type, double moving_speed, double food_detection_range, double agent_detection_range, double predator_detection_range) {
+        this.aliveAgents.add(new Agent(x, y, energy, energy_to_reproduce, reproduction_cost, genotype, class_type, moving_speed, food_detection_range, agent_detection_range, predator_detection_range, config.getMutationProbability(), simulation_height, simulation_width));
     }
 
     public void addAgentAgent(Agent new_agent) {
@@ -132,53 +169,40 @@ public class Simulation {
         this.pheromones.remove(pheromone);
     }
 
-    public void addRandomAgent() {
-        int allele_length = config.getAlleleLength();
-        int[] allele1 = new int[allele_length];
-        int[] allele2 = new int[allele_length];
-        for (int i = 0; i < allele_length; i++) {
-            allele1[i] = random.nextInt(2);
-            allele2[i] = random.nextInt(2);
-        }
-        Allele all1 = new Allele(allele1);
-        Allele all2 = new Allele(allele2);
-        Gene phero_gene = new Gene(all1, all2);
-        Genotype genotype = new Genotype(phero_gene);
-        addAgent(Math.random()*simulation_width, Math.random()*simulation_height, config.getAgentBaseEnergyLevel(), config.getEnergyLevelToReproduce(), config.getReproductionCost(), genotype, "Agent1", config.getMovingSpeed(), config.getFoodDetectionRange(), config.getAgentDetectionRange());
+    public void addRepelantRepelant(Repelant repelant) {
+        this.repelants.add(repelant);
     }
 
-    public void addRandomPredator() {
-        addPredator(Math.random()*simulation_width, Math.random()*simulation_height, 1000, "Predator", config.getPredatorSpeed(), config.getPredatorPreyDetectionRange(), config.getPredatorPreyEatingRange(), simulation_height, simulation_width);
+    public void removeRepelant(Repelant repelant) {
+        this.repelants.remove(repelant);
     }
     
+    public void addRandomPredator() {
+        addPredator(Math.random()*simulation_width, Math.random()*simulation_height, config.getPredatorBaseEnergyLevel(), "Predator", config.getPredatorSpeed(), config.getPredatorPreyDetectionRange(), config.getPredatorPreyEatingRange(), config.getPredatorEnergyLevelToLookForPrey(), config.getAgentNutritiveValue(), simulation_height, simulation_width);
+    }
+    
+    public void addRandomAgent() {
+        int allele_length = config.getAlleleLength();
+        Gene phero_gene = getRandomGene(allele_length);
+        Gene repelant_gene = getRandomGene(allele_length);
+        Genotype genotype = new Genotype(phero_gene, repelant_gene);
+        addAgent(Math.random()*simulation_width, Math.random()*simulation_height, config.getAgentBaseEnergyLevel(), config.getEnergyLevelToReproduce(), config.getReproductionCost(), genotype, "Agent1", config.getMovingSpeed(), config.getFoodDetectionRange(), config.getAgentDetectionRange(), config.getAgentPredatorDetectionRange());
+    }
+
     public void addAltruisticAgent() {
         int allele_length = config.getAlleleLength();
-        int[] allele1 = new int[allele_length];
-        int[] allele2 = new int[allele_length];
-        for (int i = 0; i < allele_length; i++) {
-            allele1[i] = 1;
-            allele2[i] = 1;
-        }
-        Allele all1 = new Allele(allele1);
-        Allele all2 = new Allele(allele2);
-        Gene phero_gene = new Gene(all1, all2);
-        Genotype genotype = new Genotype(phero_gene);
-        addAgent(Math.random()*simulation_width, Math.random()*simulation_height, config.getAgentBaseEnergyLevel(), config.getEnergyLevelToReproduce(), config.getReproductionCost(), genotype, "Agent1", config.getMovingSpeed(), config.getFoodDetectionRange(), config.getAgentDetectionRange());
+        Gene phero_gene = getConstantGene(allele_length, 1);
+        Gene repelant_gene = getConstantGene(allele_length, 1);
+        Genotype genotype = new Genotype(phero_gene, repelant_gene);
+        addAgent(Math.random()*simulation_width, Math.random()*simulation_height, config.getAgentBaseEnergyLevel(), config.getEnergyLevelToReproduce(), config.getReproductionCost(), genotype, "Agent1", config.getMovingSpeed(), config.getFoodDetectionRange(), config.getAgentDetectionRange(), config.getAgentPredatorDetectionRange());
     }
     
     public void addEgoisticAgent() {
         int allele_length = config.getAlleleLength();
-        int[] allele1 = new int[allele_length];
-        int[] allele2 = new int[allele_length];
-        for (int i = 0; i < allele_length; i++) {
-            allele1[i] = 0;
-            allele2[i] = 0;
-        }
-        Allele all1 = new Allele(allele1);
-        Allele all2 = new Allele(allele2);
-        Gene phero_gene = new Gene(all1, all2);
-        Genotype genotype = new Genotype(phero_gene);
-        addAgent(Math.random()*simulation_width, Math.random()*simulation_height, config.getAgentBaseEnergyLevel(), config.getEnergyLevelToReproduce(), config.getReproductionCost(), genotype, "Agent1", config.getMovingSpeed(), config.getFoodDetectionRange(), config.getAgentDetectionRange());
+        Gene phero_gene = getConstantGene(allele_length, 0);
+        Gene repelant_gene = getConstantGene(allele_length, 0);
+        Genotype genotype = new Genotype(phero_gene, repelant_gene);
+        addAgent(Math.random()*simulation_width, Math.random()*simulation_height, config.getAgentBaseEnergyLevel(), config.getEnergyLevelToReproduce(), config.getReproductionCost(), genotype, "Agent1", config.getMovingSpeed(), config.getFoodDetectionRange(), config.getAgentDetectionRange(), config.getAgentPredatorDetectionRange());
     }
 
     public void addRandomFood() {
@@ -201,6 +225,10 @@ public class Simulation {
         return this.predators;
     }
 
+    public ArrayList<Repelant> getRepelants() {
+        return this.repelants;
+    }
+
     public int getCurrentTime() {
         return this.currentTime;
     }
@@ -208,6 +236,11 @@ public class Simulation {
     public double getNumberAgents() {
         double number_of_agents = aliveAgents.size();
         return number_of_agents;
+    }    
+    
+    public double getNumberPredators() {
+        double number_of_predators = predators.size();
+        return number_of_predators;
     }
 
     public double getAverageSpreadProba() {
@@ -224,17 +257,56 @@ public class Simulation {
 
     public double getPartOfAltruists() {
         List<Agent> agents = getAliveAgents();
-        double number_of_agents = getNumberAgents();
-        
+        double number_of_agents = getNumberAgents(); 
         double part_of_altruists = 0;
         for (Agent agent : agents) {
-            if (agent.isAProducer()) {
+            if (agent.isAPheromoneProducer()) {
                 part_of_altruists += 1;
             }
         }
         double final_part = part_of_altruists / number_of_agents;
         return final_part;
     }
+
+    public double getPartOfRepelers() {
+        List<Agent> agents = getAliveAgents();
+        double number_of_agents = getNumberAgents();
+        double part_of_repelers = 0;
+        for (Agent agent : agents) {
+            if (agent.isARepelantProducer()) {
+                part_of_repelers += 1;
+            }
+        }
+        double final_part = part_of_repelers / number_of_agents;
+        return final_part;
+    }
+
+    public Gene getRandomGene(int allele_length) {
+        int[] allele1 = new int[allele_length];
+        int[] allele2 = new int[allele_length];
+        for (int i = 0; i < allele_length; i++) {
+            allele1[i] = random.nextInt(2);
+            allele2[i] = random.nextInt(2);
+        }
+        Allele all1 = new Allele(allele1);
+        Allele all2 = new Allele(allele2);
+        Gene random_gene = new Gene(all1, all2);
+        return random_gene;
+    }
+
+    public Gene getConstantGene(int allele_length, int value) {
+        int[] allele1 = new int[allele_length];
+        int[] allele2 = new int[allele_length];
+        for (int i = 0; i < allele_length; i++) {
+            allele1[i] = value;
+            allele2[i] = value;
+        }
+        Allele all1 = new Allele(allele1);
+        Allele all2 = new Allele(allele2);
+        Gene zero_gene = new Gene(all1, all2);
+        return zero_gene;
+    }
+
 
     public void incrementTime() {
         this.currentTime++;

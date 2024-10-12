@@ -5,16 +5,19 @@ public class Agent extends Creature{
     private Genotype genotype;
     private double food_detection_range;
     private double agent_detection_range;
+    private double predator_detection_range;
     private double energy_level_to_reproduce;
     private boolean is_eating = false;
     private boolean can_move = true;
     private boolean is_a_pheromone_producer;
+    private boolean is_a_repelant_producer;
+    private boolean is_there_predator_nearby;
     private int age;
     private double reproduction_cost;
     private boolean can_reproduce;
     private double mutation_probability;
     
-    public Agent(double x, double y, double energy_level, double energy_to_reproduce, double reproduction_cost, Genotype genotype, String class_type, double speed, double food_detection_range, double agent_detection_range, double mutation_probability, double height, double width) {
+    public Agent(double x, double y, double energy_level, double energy_to_reproduce, double reproduction_cost, Genotype genotype, String class_type, double speed, double food_detection_range, double agent_detection_range, double predator_detection_range, double mutation_probability, double height, double width) {
         super(x, y, energy_level, class_type, speed, height, width);
         this.direction = this.getRandomDirection();
         this.direction[0] = this.direction[0] * this.speed;
@@ -22,18 +25,30 @@ public class Agent extends Creature{
         this.genotype = genotype;
         this.food_detection_range = food_detection_range;
         this.agent_detection_range = agent_detection_range;
+        this.predator_detection_range = predator_detection_range;
         this.energy_level_to_reproduce = energy_to_reproduce;
         this.reproduction_cost = reproduction_cost;
         this.age = 0;
-        this.is_a_pheromone_producer = genotype.isAProducer();
+        this.is_a_pheromone_producer = genotype.isAPheromoneProducer();
+        this.is_a_repelant_producer = genotype.isARepelantProducer();
         this.can_reproduce = false;
+        this.is_there_predator_nearby = false;
         this.mutation_probability = mutation_probability;
     }
     
-    public Agent updateDirectionAndEat(ArrayList<Agent> agents, ArrayList<Food> food_sources, ArrayList<Pheromone> pheromones, double simulation_time) {
+    public Agent updateDirectionAndEat(ArrayList<Agent> agents, ArrayList<Food> food_sources, ArrayList<Pheromone> pheromones, ArrayList<Predator> predators, double simulation_time) {
         this.is_eating = false;
+        this.is_there_predator_nearby = false;
         this.can_move = true;
         Agent potential_child = null;
+        
+        Predator nearest_predator = findNearestPredator(predators);
+        if (nearest_predator != null) {
+            double[] direction_opposite_predator = this.getDirectionNormedOpposite(this.direction, nearest_predator);
+            changeDirection(direction_opposite_predator);
+            this.is_there_predator_nearby = true;
+            return potential_child;
+        }
 
         Food nearest_food = findNearestFoodSource(food_sources);
         if (!(nearest_food == null)) {
@@ -93,6 +108,17 @@ public class Agent extends Creature{
         }
         return agentHashMap;
     }
+
+    public HashMap<Predator, Double> getNearbyPredator(ArrayList<Predator> predators) {
+        HashMap<Predator, Double> predatorHashMap = new HashMap<>();
+        for (int i = 0; i < predators.size(); i++) {
+            double distance = this.distanceToElement(predators.get(i));
+            if (distance < this.predator_detection_range) {
+                predatorHashMap.put(predators.get(i), distance);
+            }
+        }
+        return predatorHashMap;
+    }
     
     public HashMap<Food, Double> getNearbyFoods(ArrayList<Food> food_sources) {
         HashMap<Food, Double> foodHashMap = new HashMap<>();
@@ -129,6 +155,19 @@ public class Agent extends Creature{
             }
         }
         return nearest_agent;
+    }
+
+    public Predator findNearestPredator(ArrayList<Predator> predators) {
+        HashMap<Predator, Double> predatorsHashMap = this.getNearbyPredator(predators);
+        double min_distance = Double.POSITIVE_INFINITY;
+        Predator nearest_predator = null;
+        for (Predator predator : predatorsHashMap.keySet()) {
+            if (predatorsHashMap.get(predator) < min_distance) {
+                nearest_predator = predator;
+                min_distance = predatorsHashMap.get(predator);
+            }
+        }
+        return nearest_predator;
     }
 
     public double getNumberOfNearbyEatingAgents(ArrayList<Agent> agents) {
@@ -173,7 +212,7 @@ public class Agent extends Creature{
     public void eatFood(Food food, double current_time, ArrayList<Agent> agents) {
         double eating_agent_nearby = getNumberOfNearbyEatingAgents(agents);
         double nb_subbly_eaten;
-        if (eating_agent_nearby < 2) {
+        if (eating_agent_nearby < 1) {
             nb_subbly_eaten = 0;
         } else {
             nb_subbly_eaten = 1;
@@ -235,7 +274,7 @@ public class Agent extends Creature{
 
     public Agent reproduce(Agent other_parent) {
         Genotype child_genotype = genotype.getChildCoupleChildrenGenotype(this.getGenotype(), other_parent.getGenotype(), mutation_probability);
-        Agent child = new Agent(this.x, this.y, this.base_energy_level, this.energy_level_to_reproduce, this.reproduction_cost, child_genotype, this.class_type, this.speed, this.food_detection_range, this.agent_detection_range, this.mutation_probability, this.simulation_height, this.simulation_width);
+        Agent child = new Agent(this.x, this.y, this.base_energy_level, this.energy_level_to_reproduce, this.reproduction_cost, child_genotype, this.class_type, this.speed, this.food_detection_range, this.agent_detection_range, this.predator_detection_range, this.mutation_probability, this.simulation_height, this.simulation_width);
         return child;
     }
 
@@ -251,7 +290,15 @@ public class Agent extends Creature{
         return genotype.getSpreadPheromoneProba();
     }
 
-    public boolean isAProducer() {
+    public boolean isAPheromoneProducer() {
         return is_a_pheromone_producer;
+    }
+
+    public boolean isInDanger() {
+        return is_there_predator_nearby;
+    }
+
+    public boolean isARepelantProducer() {
+        return is_a_repelant_producer;
     }
 }
