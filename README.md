@@ -4,8 +4,6 @@ The objective is to create a multi agent simulation with genome differenciation 
 
 ### Tasks
 
-- [ ] Find out how to make repelants relevant
-
 ### Contribution
 
 Feel free to fork the repository and submit a pull request for any contributions!
