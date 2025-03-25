@@ -1,8 +1,8 @@
 {
     "number_of_altruistic_agents": 0,
     "number_of_egoistic_agents": 0,
-    "number_of_predators" : 5,
-    "number_of_random_agents": 50,
+    "number_of_predators" : 20,
+    "number_of_random_agents": 300,
     "agent_base_energy_level": 1200,
     "moving_speed": 0.3,
     "food_detection_range": 40,
@@ -28,7 +28,7 @@
     "food_max_supply": 1500,
     "time_before_food_respawn": 1000,
 
-    "pheromone_radius": 50,
+    "pheromone_radius": 300,
     "pheromone_lifespan": 1,
     "pheromone_energy_cost": 0.01,
 
